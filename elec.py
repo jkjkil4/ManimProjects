@@ -38,5 +38,13 @@ class Elec(Scene):
         groupElec2 = VGroup(elec2, elec2Label)
         self.play(Write(groupElec2))
         self.play(groupElec2.animate.shift(RIGHT_SIDE / 3), run_time = 1)
-        
+
+        dashedLine = DashedLine(LEFT_SIDE, RIGHT_SIDE, color = BLUE)
+        dashedLine.set_opacity(0.4)
+        self.play(
+            VGroup(explain1, explain2).animate.scale(0.8, about_edge = UL).set_opacity(0.6),
+            Write(dashedLine),
+            run_time = 1.5
+            )
+
         self.wait()
