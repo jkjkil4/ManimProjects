@@ -1,4 +1,4 @@
-from header import *
+from manimlib import *
 
 class Elec(Scene):
     def construct(self):
@@ -11,7 +11,7 @@ class Elec(Scene):
         explain1.set_stroke(BLACK, 3, background = True)
         self.play(Write(explain1))
 
-        elec1 = Circle(radius = 0.12, color = ORANGE)
+        elec1 = Circle(radius = 0.1, color = ORANGE)
         elec1.set_fill(ORANGE, opacity = 0.5)
         elec1Label = TexText("$Q_1$", color = ORANGE, font_size = 26)
         elec1Label.set_stroke(BLACK, 3, background = True)
@@ -30,7 +30,7 @@ class Elec(Scene):
         explain2.set_stroke(BLACK, 3, background = True)
         self.play(Write(explain2))
 
-        elec2 = Circle(radius = 0.12, color = YELLOW)
+        elec2 = Circle(radius = 0.1, color = YELLOW)
         elec2.set_fill(YELLOW, opacity = 0.5)
         elec2Label = TexText("$Q_2$", color = YELLOW, font_size = 26)
         elec2Label.set_stroke(BLACK, 3, background = True)

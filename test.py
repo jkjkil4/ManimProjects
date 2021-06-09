@@ -1,4 +1,10 @@
-from header import *
+from manimlib import *
+
+def eqRange(fromValue, toValue, step = 1):
+    value = fromValue
+    while(value <= toValue):
+        yield value
+        value += step
 
 class Test(Scene):
     def construct(self):
