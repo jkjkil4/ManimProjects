@@ -1,10 +1,8 @@
+import sys
+sys.path.append(".")
 from manimlib import *
+import header
 
-def eqRange(fromValue, toValue, step = 1):
-    value = fromValue
-    while(value <= toValue):
-        yield value
-        value += step
 
 class Test(Scene):
     def construct(self):
@@ -33,3 +31,12 @@ class Vec(Scene):
         self.play(ShowCreation(plane, lag_ratio = 0.01), run_time = 1.5)
         self.play(ShowCreation(tanGraph))
         self.play(group.animate.apply_matrix(matrix), run_time = 2)
+
+class Test2(Scene):
+    def construct(self):
+        text = "012345678 "
+        text2 = ""
+        for i in range(10):
+            text2 += text
+        self.add(Text(text2).scale(0.5))
+        self.wait()
