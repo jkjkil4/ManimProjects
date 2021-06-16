@@ -32,7 +32,7 @@ class ElecConView(Scene):
         # 对电容器的描述
         txtCon = Text("这是一个平行板电容器").next_to(groupLineElecCon, DOWN, MED_LARGE_BUFF)
         self.play(Write(txtCon))
-        self.wait(0.7)
+        self.wait()
 
         # 对接线的描述
         txtElec = VGroup(
@@ -49,9 +49,7 @@ class ElecConView(Scene):
         # 电压的描述
         txtU = VGroup(Text("电压为"), Tex("U", color = YELLOW).scale(1.5)).arrange().next_to(txtElec, DOWN)
         self.play(Write(txtU))
-        self.wait(1.5)
-        
-        # 以下未测试运行
+        self.wait()
         
         # 对两极板电性的描述
         txtConElec = VGroup(
@@ -59,33 +57,53 @@ class ElecConView(Scene):
             Text(" 右板带"), Text("正电", color = RED)
             ).arrange().next_to(groupLineElecCon, DOWN, buff = MED_LARGE_BUFF)
         # 符号标注
-        signBuf = [SMALL_BUFF, 0, 0]
         sideSigns = []
+        def signAlways(sign, line, k, offset):
+            f_always(sign.move_to, lambda: h.getLineLerp(line, k) + [offset, 0, 0])
         for i in range(0, 4):
             signLeft, signRight = Text("-", color = BLUE), Text("+", color = RED)
             # 实时确定位置
             k = (i + 0.1) / 3.2
-            f_always(signLeft.move_to, lambda: (getLineLerp(lineLeft, k) - signBuf))
-            f_always(signRight.move_to, lambda: (getLineLerp(lineRight) + signBuf))
+            signAlways(signLeft, lineElecConLeft, k, -MED_SMALL_BUFF)
+            signAlways(signRight, lineElecConRight, k, MED_SMALL_BUFF)
             # 添加到sideSigns中
-            sideSigns.append(signLeft, signRight)
+            sideSigns.append(signLeft)
+            sideSigns.append(signRight)
         self.play(
-            FadeOut(VGroup(txtElec, txtU), UP), FadeIn(txtConElec, DOWN), 
+            FadeOut(VGroup(txtElec, txtU), UP / 2), FadeIn(txtConElec, UP / 2), 
             *[FadeIn(sign) for sign in sideSigns]
             )
-        self.wait(1.5)
+        self.wait()
         
+        # 对电场强度的描述
+        txtEp = VGroup(
+            Text("电场强度", color = GOLD), Tex("E", color = GOLD).scale(1.5), Text("由"), 
+            Text("正极板", color = RED), Text("指向"), Text("负极板", color = BLUE)
+            ).arrange().next_to(groupLineElecCon, DOWN, buff = MED_LARGE_BUFF)
         # 电场强度
         eps = []
         for i in range(0, 6):
-            ep = Arrow(color = GOLD, buff = SMALL_BUFF)
+            ep = Arrow(fill_color = GOLD, max_width_to_length_ratio = 0.01)
+            k = (i + 0.1) / 5.2
+            ep.set_points_by_ends(h.getLineLerp(lineElecConRight, k) - [SMALL_BUFF, 0, 0], h.getLineLerp(lineElecConLeft, k) + [SMALL_BUFF, 0, 0])
+            # 添加到eps中
+            eps.append(ep)
+        self.play(
+            FadeOut(txtConElec, UP / 2), FadeIn(txtEp, UP / 2),
+            *[GrowArrow(ep) for ep in eps]
+            )
+        def epAlways(ep, k):
+            f_always(
+                ep.set_points_by_ends, 
+                lambda: h.getLineLerp(lineElecConRight, k) - [SMALL_BUFF, 0, 0], 
+                lambda: h.getLineLerp(lineElecConLeft, k) + [SMALL_BUFF, 0, 0]
+                )
+        for i in range(0, 6):
             # 实时确定位置
             k = (i + 0.1) / 5.2
-            f_always(ep.set_points_by_ends, lambda: getLineLerp(lineRight, k), lambda: getLineLerp(lineLeft, k))
-            # 添加到eps中
-            eps.append(eps)
-        self.play(*[Write(ep) for ep in eps])
-        
+            epAlways(eps[i], k)
+        self.wait()
+
         
         
         
