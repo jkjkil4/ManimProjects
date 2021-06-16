@@ -14,11 +14,9 @@ class ElecConView(Scene):
         
         # 连接的电路
         lineLeft, lineRight = Line(), Line()
-        def getLineCenter(line):    # 用于得到线段中点
-            return (line.get_start() + line.get_end()) / 2
         # 实时确定电路线段位置
-        f_always(lineLeft.set_points_by_ends, lambda: getLineCenter(lineElecConLeft), lambda: getLineCenter(lineElecConLeft) - elecLineBuf)
-        f_always(lineRight.set_points_by_ends, lambda: getLineCenter(lineElecConRight), lambda: getLineCenter(lineElecConRight) + elecLineBuf)
+        f_always(lineLeft.set_points_by_ends, lambda: h.getLineCenter(lineElecConLeft), lambda: h.getLineCenter(lineElecConLeft) - elecLineBuf)
+        f_always(lineRight.set_points_by_ends, lambda: h.getLineCenter(lineElecConRight), lambda: h.getLineCenter(lineElecConRight) + elecLineBuf)
         self.add(lineLeft, lineRight)
 
         # 电路末端的圆
@@ -51,4 +49,49 @@ class ElecConView(Scene):
         # 电压的描述
         txtU = VGroup(Text("电压为"), Tex("U", color = YELLOW).scale(1.5)).arrange().next_to(txtElec, DOWN)
         self.play(Write(txtU))
-        self.wait()
+        self.wait(1.5)
+        
+        # 以下未测试运行
+        
+        # 对两极板电性的描述
+        txtConElec = VGroup(
+            Text("则左板带"), Text("负电", color = BLUE),
+            Text(" 右板带"), Text("正电", color = RED)
+            ).arrange().next_to(groupLineElecCon, DOWN, buff = MED_LARGE_BUFF)
+        # 符号标注
+        signBuf = [SMALL_BUFF, 0, 0]
+        sideSigns = []
+        for i in range(0, 4):
+            signLeft, signRight = Text("-", color = BLUE), Text("+", color = RED)
+            # 实时确定位置
+            k = (i + 0.1) / 3.2
+            f_always(signLeft.move_to, lambda: (getLineLerp(lineLeft, k) - signBuf))
+            f_always(signRight.move_to, lambda: (getLineLerp(lineRight) + signBuf))
+            # 添加到sideSigns中
+            sideSigns.append(signLeft, signRight)
+        self.play(
+            FadeOut(VGroup(txtElec, txtU), UP), FadeIn(txtConElec, DOWN), 
+            *[FadeIn(sign) for sign in sideSigns]
+            )
+        self.wait(1.5)
+        
+        # 电场强度
+        eps = []
+        for i in range(0, 6):
+            ep = Arrow(color = GOLD, buff = SMALL_BUFF)
+            # 实时确定位置
+            k = (i + 0.1) / 5.2
+            f_always(ep.set_points_by_ends, lambda: getLineLerp(lineRight, k), lambda: getLineLerp(lineLeft, k))
+            # 添加到eps中
+            eps.append(eps)
+        self.play(*[Write(ep) for ep in eps])
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
