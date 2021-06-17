@@ -9,7 +9,7 @@ phiBuf = [0, 0.5, 0]
 class ElecConView(Scene):
     def construct(self):
         # 平行板电容器
-        lineElecConLeft, lineElecConRight = Line(UL, DL).shift(DOWN / 2), Line(UR, DR).shift(DOWN / 2)
+        lineElecConLeft, lineElecConRight = Line(UL, DL), Line(UR, DR)
         groupLineElecCon = VGroup(lineElecConLeft, lineElecConRight)
         self.add(lineElecConLeft, lineElecConRight)
         
@@ -109,8 +109,12 @@ class ElecConView(Scene):
         self.play(Write(txtE))
         self.wait()
         
-        # 减小eps和txtE的透明度
-        self.play(*[ep.animate.set_opacity(0.1) for ep in eps], FadeOut(txtE))
+        # 减小sideSigns和eps和txtE的透明度
+        self.play(
+            *[sideSign.animate.set_opacity(0.3) for sideSign in sideSigns], 
+            *[ep.animate.set_opacity(0.1) for ep in eps], 
+            FadeOut(txtE)
+            )
         
         # phi可视化
         lockE = -1 # 当Q固定时E的值，若为-1则为U固定
@@ -123,35 +127,37 @@ class ElecConView(Scene):
             if ground == 1:
                 return lineElecConRight.get_x()
             return (lineElecConLeft.get_x() + lineElecConRight.get_x()) / 2
+        def phiVCenter():
+            return (lineElecConLeft.get_y() - lineElecConRight.get_y()) / 2
         def fnLinePhiLeft():
             if lockE == -1:
                 return h.getLineCenter(lineElecConLeft) - phiBuf
-            return lockPhi + (lineElecConLeft.get_x() - phiCenter()) * lockE
+            return [lineElecConLeft.get_x(), phiVCenter() + lockPhi + (lineElecConLeft.get_x() - phiCenter()) * lockE, 0]
         def fnLinePhiRight():
             if lockE == -1:
                 return h.getLineCenter(lineElecConRight) + phiBuf
-            return lockPhi + (lineElecConRight.get_x() - phiCenter()) * lockE
+            return [lineElecConRight.get_x(), phiVCenter() + lockPhi + (lineElecConRight.get_x() - phiCenter()) * lockE, 0]
         # phi线
         linePhi = Line(fnLinePhiLeft(), fnLinePhiRight(), color = YELLOW)
         # 描述
         txtPhi = Text("为了更好地对电势进行可视化").next_to(groupLineElecCon, DOWN, buff = MED_LARGE_BUFF)
-        txtPhiUpper = VGroup(Text("电势"), Text("高", color = RED), Text("处标得更"), Text("高", color = RED)).next_to(txtPhi, DOWN)
-        txtPhiLower = VGroup(Text("电势"), Text("低", color = BLUE), Text("处标得更"), Text("低", color = BLUE)).next_to(txtPhi, DOWN)
+        txtPhiUpper = VGroup(Text("电势"), Text("高", color = RED), Text("处标得更"), Text("高", color = RED)).arrange().next_to(txtPhi, DOWN)
+        txtPhiLower = VGroup(Text("电势"), Text("低", color = BLUE), Text("处标得更"), Text("低", color = BLUE)).arrange().next_to(txtPhi, DOWN)
         # 动画
-        self.play(Write(linePhi), ReplacementTransform(txtEp, txtPhi)))
+        self.play(Write(linePhi), ReplacementTransform(txtEp, txtPhi))
         self.wait(0.5)
-        self.play(Write(txtPhiUpper), FocusOn(fnLinePhiRight(), color = YELLOW))
-        self.wait(0.8)
-        self.play(ReplacementTransform(txtPhiUpper, txtPhiLower), FocusOn(fnLinePhiLeft(), color = YELLOW))
+        self.play(Write(txtPhiUpper), Flash(fnLinePhiRight(), color = YELLOW, flash_radius = 0.4, line_length = 0.15, run_time = 0.8))
+        self.wait(0.8) 
+        self.play(ReplacementTransform(txtPhiUpper, txtPhiLower), Flash(fnLinePhiLeft(), color = YELLOW, flash_radius = 0.4, line_length = 0.15, run_time = 0.8))
         self.wait()
         # 实时确定phi线位置
         f_always(linePhi.set_points_by_ends, fnLinePhiLeft, fnLinePhiRight)
         
         # 高度差 -> U
-        txtDH = VGroup(Text("令高度差为"), Tex("U", color = YELLOW))
+        txtDH = VGroup(Text("令高度差为"), Tex("U", color = YELLOW)).arrange().next_to(groupLineElecCon, DOWN, buff = MED_LARGE_BUFF)
         
         
-        
+        self.wait()
         
         
         
