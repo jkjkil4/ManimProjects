@@ -3,8 +3,6 @@ sys.path.append(".")
 import header as h
 from manimlib import *
 
-defaultFontSize = 24
-
 def createLabel(tex, col):
     return Tex(tex, color = col)
 def createElecWithLabel(tex, col):
@@ -136,7 +134,7 @@ class Elec(Scene):
         self.wait()
 
         # 公式
-        formula = Tex("F=k\\frac{Q_1 Q_2}{d^2}", font_size = defaultFontSize * 2)
+        formula = Tex("F=k\\frac{Q_1 Q_2}{d^2}", font_size = h.defaultFontSize * 2)
         formulaQ1 = VGroup(formula[0][3], formula[0][4])
         formulaQ2 = VGroup(formula[0][5], formula[0][6])
         for single in [formula[0][i] for i in [0, 1, 2, 7, 8, 9]] + [formulaQ1, formulaQ2]:

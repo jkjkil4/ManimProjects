@@ -4,6 +4,7 @@ import header as h
 from manimlib import *
 
 elecLineBuf = [2, 0, 0]
+phiBuf = [0, 0.5, 0]
 
 class ElecConView(Scene):
     def construct(self):
@@ -88,10 +89,8 @@ class ElecConView(Scene):
             ep.set_points_by_ends(h.getLineLerp(lineElecConRight, k) - [SMALL_BUFF, 0, 0], h.getLineLerp(lineElecConLeft, k) + [SMALL_BUFF, 0, 0])
             # 添加到eps中
             eps.append(ep)
-        self.play(
-            FadeOut(txtConElec, UP / 2), FadeIn(txtEp, UP / 2),
-            *[GrowArrow(ep) for ep in eps]
-            )
+        self.play(FadeOut(txtConElec, UP / 2), FadeIn(txtEp, UP / 2))
+        self.play(*[GrowArrow(ep) for ep in eps])
         def epAlways(ep, k):
             f_always(
                 ep.set_points_by_ends, 
@@ -102,8 +101,54 @@ class ElecConView(Scene):
             # 实时确定位置
             k = (i + 0.1) / 5.2
             epAlways(eps[i], k)
+        
+        # 以下未测试运行
+        
+        # E
+        txtE = Tex("E", color = GOLD).scale(1.5).next_to(eps[0], UP)
+        self.play(Write(txtE))
         self.wait()
-
+        
+        # 减小eps和txtE的透明度
+        self.play(*[ep.animate.set_opacity(0.1) for ep in eps], FadeOut(txtE))
+        
+        # phi可视化
+        lockE = -1 # 当Q固定时E的值，若为-1则为U固定
+        ground = 0 # 0:不接地 -1:左极板接地 1:右极板接地
+        lockPhi = 0
+        # 用于确定phi线位置
+        def phiCenter():
+            if ground == -1:
+                return lineElecConLeft.get_x()
+            if ground == 1:
+                return lineElecConRight.get_x()
+            return (lineElecConLeft.get_x() + lineElecConRight.get_x()) / 2
+        def fnLinePhiLeft():
+            if lockE == -1:
+                return h.getLineCenter(lineElecConLeft) - phiBuf
+            return lockPhi + (lineElecConLeft.get_x() - phiCenter()) * lockE
+        def fnLinePhiRight():
+            if lockE == -1:
+                return h.getLineCenter(lineElecConRight) + phiBuf
+            return lockPhi + (lineElecConRight.get_x() - phiCenter()) * lockE
+        # phi线
+        linePhi = Line(fnLinePhiLeft(), fnLinePhiRight(), color = YELLOW)
+        # 描述
+        txtPhi = Text("为了更好地对电势进行可视化").next_to(groupLineElecCon, DOWN, buff = MED_LARGE_BUFF)
+        txtPhiUpper = VGroup(Text("电势"), Text("高", color = RED), Text("处标得更"), Text("高", color = RED)).next_to(txtPhi, DOWN)
+        txtPhiLower = VGroup(Text("电势"), Text("低", color = BLUE), Text("处标得更"), Text("低", color = BLUE)).next_to(txtPhi, DOWN)
+        # 动画
+        self.play(Write(linePhi), ReplacementTransform(txtEp, txtPhi)))
+        self.wait(0.5)
+        self.play(Write(txtPhiUpper), FocusOn(fnLinePhiRight(), color = YELLOW))
+        self.wait(0.8)
+        self.play(ReplacementTransform(txtPhiUpper, txtPhiLower), FocusOn(fnLinePhiLeft(), color = YELLOW))
+        self.wait()
+        # 实时确定phi线位置
+        f_always(linePhi.set_points_by_ends, fnLinePhiLeft, fnLinePhiRight)
+        
+        # 高度差 -> U
+        txtDH = VGroup(Text("令高度差为"), Tex("U", color = YELLOW))
         
         
         

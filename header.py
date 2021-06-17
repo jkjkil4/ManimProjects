@@ -1,3 +1,5 @@
+defaultFontSize = 24
+
 def eqRange(fromValue, toValue, step = 1):
     value = fromValue
     while(value <= toValue):
