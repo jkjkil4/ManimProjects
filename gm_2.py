@@ -21,7 +21,9 @@ class GMOpeningScene(h.OpeningScene):
 class GMTimeScene(h.TimeScene):
     info_list = [
         ["00:12", "创建项目"],
-        ["00:42", "第一次尝试"]
+        ["00:42", "第一次尝试"],
+        ["02:16", "完善"],
+        ["05:02", "结尾"]
     ]
 
 class CreateProject(Scene):
@@ -95,7 +97,7 @@ class FirstStep_1(Scene):
 
         txtSpr1 = VGroup(
             Text("-", color = txtColor2), 
-            Text("Sprite是一个图像（序列），你可以对其进行编辑或者导入现有的图像", color = txtColor2, t2c = h.dictAppend({ "（序列）": GREY_A }, t2c))
+            Text("Sprite是一个图像（序列），你可以对其进行编辑或者导入现有的图像", color = txtColor2, t2c = h.dictAppend({ "（序列）": GREY_B }, t2c))
             ).arrange().scale(0.8).next_to(txtSpr, DOWN, aligned_edge = LEFT)
         self.play(FadeIn(txtSpr1, scale_factor = 0.7))
         self.wait(0.8)
@@ -301,7 +303,7 @@ class Better_1(Scene):
         
         txtEv3 = Text("选择KeyDown（压住键）中的Right（右方向键）", color = txtColor2, t2c = { "KeyDown": PURPLE, "Right": PURPLE })\
             .scale(0.8).next_to(txtEv2, DOWN, MED_LARGE_BUFF, LEFT)
-        txtEv4 = Text("即可添加一个当按着右方向键时就会触发的事件", color = txtColor2, t2c = { "按着右方向键": ORANGE, "事件": GREEN_D })\
+        txtEv4 = Text("即可添加一个当按着右方向键时就会触发的事件", color = txtColor2, t2c = { "按着右方向键": PURPLE, "事件": GREEN_D })\
             .scale(0.8).next_to(txtEv3, DOWN, aligned_edge = LEFT)
         imgEv = ImageMobject("assets/gm/add_key_event.png", height = 5).to_edge(UR)
         self.play(Write(txtEv3), FadeTransform(imgObj, imgEv), run_time = 2)
@@ -409,7 +411,7 @@ class Better_2(Scene):
         txtEdit3 = VGroup(
             Text("那我们就可以写上", color = txtColor2),
             Text("\"x = x + 4;\"", color = txtColor2, t2c = t2c)
-            ).arrange(buff = SMALL_BUFF).scale(0.8)
+            ).set_stroke(txtColor2).arrange(buff = SMALL_BUFF).scale(0.8)
         txtEdit4 = Text("我们不能从数学的角度来思考这段代码", color = txtColor2, t2c = { "数学": ORANGE }).scale(0.8)
         txtEdit5 = Text("从编程的角度，这段代码的意思是：“将x的值设置为x+4的结果”", color = txtColor2, t2c = h.dictAppend({ "编程": ORANGE }, t2c)).scale(0.8)
         txtEdit6 = Text("这样就可以使得x增加4", color = txtColor2, t2c = t2c).scale(0.8)
@@ -429,17 +431,17 @@ class Better_2(Scene):
         txtEdit7 = VGroup(
             Text("这段代码同样可以写成", color = txtColor2),
             Text("\"x += 4;\"", color = txtColor2, t2c = t2c)
-            ).arrange(buff = SMALL_BUFF).scale(0.8)
+            ).set_stroke(txtColor2).arrange(buff = SMALL_BUFF).scale(0.8)
         txtEdit8 = VGroup(
             Text("这是一种简略写法，和", color = txtColor2, t2c = { "简略写法": ORANGE }),
             Text("\"x = x + 4;\"", color = txtColor2, t2c = t2c),
             Text("的效果是一样的", color = txtColor2)
-            ).arrange(buff = SMALL_BUFF).scale(0.8)
+            ).set_stroke(txtColor2).arrange(buff = SMALL_BUFF).scale(0.8)
         txtEdit9 = Text("结尾的分号表示这一部分结束", color = txtColor2, t2c = { "分号": PURPLE }).scale(0.8)
         txtEdit10 = Text("GM允许你省略结尾的分号，但是我建议加上", color = txtColor2, t2c = { "分号": PURPLE }).scale(0.8)
         group7to10 = Group(txtEdit7, txtEdit8, txtEdit9, txtEdit10).arrange(DOWN, aligned_edge = LEFT).next_to(codeRight, DOWN, aligned_edge = LEFT)
         self.play(Write(txtEdit7))
-        self.play(codeRight.lines.replaceAnimate(2, "x += 4;", t2c))
+        codeRight.lines.replaceAnimate(lambda a: self.play(a), 2, "x += 4;", t2c = t2c)
         self.wait(0.5)
         self.play(Write(txtEdit8))
         self.wait(1.5)
@@ -461,5 +463,176 @@ class Better_2(Scene):
 
         self.play(FadeOut(Group(txtEdit1, group7to10, groupWarn)))
         
+class Better_3(Scene):
+    def construct(self):
+        self.add(h.watermark())
 
+        indHelper = Rectangle()
+        def indAnimate(x, y, w, h):
+            indHelper.set_width(w, stretch = True).set_height(h, stretch = True).move_to([x, y, 0])
+            return ShowCreationThenFadeAround(indHelper)
+
+        codeRight = h.CodeView(
+            "Key Down - Right",
+            [
+                "/// @description Insert description here",
+                "// You can write your code in this editor",
+                "x += 4;"
+            ],
+            t2c, headerColor = GREEN_D
+            ).move_to([-3.944761, 2.24487825, 0])
+        codeRight.lines[0].set_color(GREEN_D)
+        codeRight.lines[1].set_color(GREEN_D)
+        self.add(codeRight)
+        self.play(codeRight.animate.to_edge(UL), run_time = 0.7)
+
+        txtDesc1 = VGroup(
+            Text("你可能有注意到代码编辑界面上的", color = txtColor2),
+            Text("\"/// @description ...\"", color = GREEN_D, t2c = t2c)
+            ).set_stroke(txtColor2).arrange(buff = SMALL_BUFF).scale(0.8)
+        txtDesc2 = Text("这是用来给事件作备注用的", color = txtColor2, t2c = { "事件": GREEN_D, "备注": GREEN_D }).scale(0.8)
+        g_txtDesc = Text("*GM8没有该功能", color = txtColor2).scale(0.6)
+        txtDesc3 = VGroup(
+            Text("比如写上", color = txtColor2),
+            Text("\"/// @description 向右移动", color = txtColor2, t2c = h.dictAppend({ "[1:22]": GREEN_D }, t2c)),
+            Text("\"", color = GOLD, font = "Noto Sans Light"),
+            Text("，就可以在Events中看到备注", color = txtColor2, t2c = t2c)
+            ).set_stroke(txtColor2).arrange(aligned_edge = UP, buff = SMALL_BUFF).scale(0.8)
+        imgDesc3 = ImageMobject("assets/gm/event_description.png", height = 1.5)
+        txtDesc4 = Text("第二行只是一个小提示，删掉也不会有影响", color = txtColor2).scale(0.8)
+        groupDesc1to4 = Group(txtDesc1, Group(txtDesc2, g_txtDesc).arrange(), txtDesc3, txtDesc4)\
+            .arrange(DOWN, aligned_edge = LEFT).next_to(codeRight, DOWN, aligned_edge = LEFT)
+        imgDesc3.next_to(txtDesc3, DOWN, aligned_edge = LEFT)
+        self.play(Write(txtDesc1))
+        self.play(ShowCreationThenFadeAround(codeRight.lines[0]))
+        self.wait(0.8)
+        self.play(Write(txtDesc2))
+        self.play(DrawBorderThenFill(g_txtDesc))
+        self.wait()
+        self.play(Write(txtDesc3), run_time = 3)
+        codeRight.lines.replaceAnimate(lambda a: self.play(a), 0, "/// @description 向右移动", color = GREEN_D)
+        self.play(FadeIn(imgDesc3))
+        self.play(indAnimate(-4.75, -0.3, 0.5, 0.15))
+        self.wait()
+        self.play(FadeOut(imgDesc3), Write(txtDesc4))
+        self.wait()
+        self.play(codeRight.lines[1].animate.set_opacity(0.3))
+        self.wait(2) # n13
+
+        self.play(FadeOut(groupDesc1to4), FadeOut(codeRight))
+
+class Better_4(Scene):
+    def construct(self):
+        self.add(h.watermark())
+
+        codeRight = h.CodeView(
+            "Key Down - Right",
+            [
+                "/// @description 向右移动",
+                "x += 4;"
+            ],
+            t2c, headerColor = GREEN_D
+            ).to_edge(UR)
+        codeRight.lines[0].set_color(GREEN_D)
+        self.play(FadeIn(codeRight))
+        self.wait(0.5)
+
+        txtL1 = Text("我们再添加一个按着左方向键就会触发的事件", color = txtColor2, t2c = { "按着左方向键": PURPLE, "事件": GREEN_D }).scale(0.8)
+        codeLeft = h.CodeView(
+            "Key Down - Left",
+            [
+                "/// @description 向左移动",
+                "x -= 4;"
+            ],
+            t2c = t2c, headerColor = GREEN_D
+            )
+        codeLeft.lines[0].set_color(GREEN_D)
+        txtL2 = VGroup(
+            Text("写上", color = txtColor2), Text("\"x -= 4;\"", color = txtColor2, t2c = t2c),
+            Text("也就是", color = txtColor2), Text("\"x = x - 4;\"", color = txtColor2, t2c = t2c),
+            Text("的简略写法", color = txtColor2)
+            ).set_stroke(txtColor2).arrange(buff = SMALL_BUFF).scale(0.8)
+        txtL3 = Text("就可以让他这个时候向左移动4个像素", color = txtColor2, t2c = t2c).scale(0.8)
+        Group(txtL1, codeLeft, txtL2, txtL3).arrange(DOWN, aligned_edge = LEFT).to_edge(UL)
+        self.play(Write(txtL1))
+        self.wait(0.5)
+        self.play(FadeIn(codeLeft.others, UP))
+        self.wait(0.5)
+        self.play(Write(txtL2))
+        self.play(FadeIn(codeLeft.lines))
+        self.wait()
+        self.play(Write(txtL3))
+        self.wait(2) # n11
+        
+        codeDown = h.CodeView(
+            "Key Down - Down",
+            [
+                "/// @description 向下移动",
+                "y += 4;"
+            ],
+            t2c, headerColor = GREEN_D
+            )
+        codeDown.lines[0].set_color(GREEN_D)
+        codeUp = h.CodeView(
+            "Key Down - Up",
+            [
+                "/// @description 向上移动",
+                "y -= 4;"
+            ],
+            t2c, headerColor = GREEN_D
+            ).next_to(codeDown, UP)
+        codeUp.lines[0].set_color(GREEN_D)
+        self.play(
+            FadeOut(Group(txtL1, txtL2, txtL3)),
+            codeLeft.animate.next_to(codeDown, LEFT), codeRight.animate.next_to(codeDown, RIGHT)
+            )
+        
+        txtMove = Text("同理，我们可以完成对y的控制", color = txtColor, t2c = t2c).scale(0.8).next_to(codeDown, DOWN, MED_LARGE_BUFF)
+        self.play(DrawBorderThenFill(txtMove))
+        self.play(FadeIn(Group(codeDown, codeUp)))
+        self.wait(1.5)
+
+        group1 = Group(codeUp, codeDown, codeLeft, codeRight, txtMove)
+        self.play(group1.animate.set_opacity(0.15))
+        
+        txtRun = Text("接着运行游戏，我们便可以用方向键让它移动起来", color = txtColor, t2c = { "方向键": PURPLE }).scale(0.9)
+        self.play(DrawBorderThenFill(txtRun))
+        self.wait(0.8)
+
+        # ->插入视频<- #
+
+        self.remove(txtRun)
+
+        txtW1 = Text("可能有人会问：“你写的是‘向XX方向移动XXX像素’，为什么它会持续移动?”", color = txtColor2, t2c = { "[13:25]": PURPLE, "持续移动": PURPLE }).scale(0.8)
+        txtW2 = Text("因为游戏默认会每秒检测这种事件60次（也就是帧率60）", color = txtColor2, t2c = { "60": digitAvgColor, "帧率": PURPLE }).scale(0.8)
+        txtW3 = Text("每次执行被称为“Step（步）”", color = txtColor2, t2c = { "Step": PURPLE }).scale(0.8)
+        txtW4 = Text("所以产生了持续移动的效果", color = txtColor2, t2c = { "持续移动": PURPLE }).scale(0.8)
+        txtW5 = Text("如果调高移动的像素，那么就会移动地更快", color = txtColor2, t2c = { "高": MAROON, "快": MAROON }).scale(0.8)
+        group2 = Group(txtW1, txtW2, txtW3, txtW4, txtW5).arrange(DOWN)
+        self.play(DrawBorderThenFill(txtW1))
+        self.wait()
+        self.play(Write(txtW2))
+        self.wait(0.8)
+        self.play(Write(txtW3))
+        self.wait()
+        self.play(Write(txtW4))
+        self.wait(0.8)
+        self.play(Write(txtW5))
+        self.wait(2.5)
+
+        self.play(FadeOut(Group(group1, group2)))
+
+class End(Scene):
+    def construct(self):
+        txt1 = Text("本集教程主要是让你对GM的运作有个简单的认识", color = txtColor2)
+        txt2 = Text("接下来的几集我将会系统性地对GM各个方面的内容进行讲解", color = txtColor2)
+        group = Group(txt1, txt2).arrange(DOWN)
+        self.play(Write(txt1), run_time = 2.5)
+        self.wait(0.6)
+        self.play(DrawBorderThenFill(txt2), run_time = 2.7)
+        self.wait()
+        self.play(FadeOut(group))
+
+class GMEndScene(h.EndScene):
+    strBgm = "Icy Summit - Triodust、 Aurora Palace - Triodust、 LAST 100SEC - Triodust"
 

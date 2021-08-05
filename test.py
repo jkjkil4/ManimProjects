@@ -39,3 +39,10 @@ class Test2(Scene):
         self.add(circle)
         self.play(ShowCreationThenFadeAround(circle), run_time = 3)
         self.wait()
+
+class Test3(Scene):
+    def construct(self):
+        str1 = "abcbdadcbddcabcba中文"
+        group = VGroup(Text(str1).set_color(BLUE), Text(str1).set_color(BLUE))
+        group.arrange(buff = SMALL_BUFF, aligned_edge = DOWN)
+        self.play(Write(group), run_time = 10)

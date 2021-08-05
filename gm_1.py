@@ -31,11 +31,17 @@ class AboutGM(Scene):
         txt1 = Text("GameMaker 是一个游戏制作引擎", color = txtColor).shift(UP * 3)
         self.play(DrawBorderThenFill(txt1))
         self.wait(0.6)
-        txt2 = Text("其主要可以分为3大版本", color = txtColor2).next_to(txt1, DOWN)
-        txt3 = Text("按时间顺序排列为", color = txtColor2).next_to(txt1, DOWN)
+        txt2 = VGroup(
+            Text("主要用于制作", color = txtColor2),
+            Text("2D", color = txtColor2), Text("游戏", color = txtColor2)
+            ).set_stroke(txtColor2).arrange().next_to(txt1, DOWN)
+        txt3 = Text("其主要可以分为3大版本", color = txtColor2).next_to(txt1, DOWN)
+        txt4 = Text("按时间顺序排列为", color = txtColor2).next_to(txt1, DOWN)
         self.play(Write(txt2))
         self.wait()
-        self.play(Transform(txt2, txt3))
+        self.play(Transform(txt2[0], txt3[0:5]), Transform(txt2[1], txt3[5:7]), Transform(txt2[2], txt3[7:11]))
+        self.wait()
+        self.play(Transform(txt2[0], txt4[0:3]), Transform(txt2[1], txt4[3:5]), Transform(txt2[2], txt4[5:8]))
         self.wait()
 
         imgGM8 = ImageMobject("assets/gm/GM8.png", height = 1).shift(LEFT * 3.5 + UP)

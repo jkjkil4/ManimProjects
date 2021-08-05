@@ -137,13 +137,19 @@ class CodeLines(VGroup):
         for text in texts:
             self.add(Text(text, color = GREY_E, t2c = t2c).scale(0.6))
         self.arrange(DOWN, aligned_edge = LEFT, buff = SMALL_BUFF)
-    
-    def replaceAnimate(self, index, text, t2c, animate = ReplacementTransform):
-        new = Text(text, color = GREY_E, t2c = t2c).scale(0.6)
+
+    def replaceAnimate(self, fn, index, text, color = GREY_E, t2c = {}, animate = ReplacementTransform):
+        new = Text(text, color = color, t2c = t2c).scale(0.6)
         old = self[index]
-        new.next_to(old.get_left(), buff = 0)
+        new.move_to(old.get_left(), LEFT)
+        fn(animate(old, new))
         self.replace_submobject(index, new)
-        return animate(old, new)
+
+    def removeAnimate(self, index, animate = FadeOut):
+        sub = self[index]
+        self.remove(sub)
+        ul = self.get_corner(UL)
+        return AnimationGroup(FadeOut(sub), self.animate.arrange(DOWN, aligned_edge = LEFT, buff = SMALL_BUFF).move_to(ul, UL))
 
 class CodeBackground(BackgroundRectangle):
     CONFIG = {
@@ -165,10 +171,10 @@ class CodeHeader(Rectangle):
 class CodeView(VGroup):
     def __init__(self, title, texts, t2c, titleColor = WHITE, headerColor = GREY_D):
         self.lines = CodeLines(texts, t2c)
-        background = CodeBackground(self.lines)
+        self.background = CodeBackground(self.lines)
         txtTitle = Text(title, color = titleColor).scale(0.5)
-        header = CodeHeader(background.get_width(), txtTitle.get_height() + 0.2, fill_color = headerColor)
-        header.move_to(background.get_top() + [0, header.get_height() / 2, 0])
-        txtTitle.move_to(header)
-        self.others = VGroup(header, background, txtTitle)
-        super().__init__(self.lines, self.others)
+        self.header = CodeHeader(self.background.get_width(), txtTitle.get_height() + 0.2, fill_color = headerColor)
+        self.header.move_to(self.background.get_top() + [0, self.header.get_height() / 2, 0])
+        txtTitle.move_to(self.header)
+        self.others = VGroup(self.header, self.background, txtTitle)
+        super().__init__(self.others, self.lines)
