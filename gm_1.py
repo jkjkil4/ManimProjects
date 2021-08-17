@@ -135,7 +135,7 @@ class AboutGM(Scene):
         self.play(Write(txtNBlock3), run_time = 1.7)
         self.wait(0.4)
 
-        txtNBlock4 = Text("*貌似可以无限期试用", color = txtColor2)\
+        txtNBlock4 = Text("*目前可以无限期试用", color = txtColor2)\
             .scale(0.5).next_to(txtNBlock3, DOWN, aligned_edge = LEFT)
         self.play(DrawBorderThenFill(txtNBlock4))
         self.wait()

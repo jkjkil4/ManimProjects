@@ -624,6 +624,8 @@ class Better_4(Scene):
 
 class End(Scene):
     def construct(self):
+        self.add(h.watermark())
+
         txt1 = Text("本集教程主要是让你对GM的运作有个简单的认识", color = txtColor2)
         txt2 = Text("接下来的几集我将会系统性地对GM各个方面的内容进行讲解", color = txtColor2)
         group = Group(txt1, txt2).arrange(DOWN)
