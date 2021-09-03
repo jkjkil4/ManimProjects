@@ -3,7 +3,10 @@ from manimlib import *
 defaultFontSize = 24
 
 def watermark():
-    return ImageMobject("assets/self.webp", height = 4, opacity = 0.01)      
+    return ImageMobject("assets/self.webp", height = 4, opacity = 0.01)
+
+def txtwatermark():
+    return Text("jkjkil-jiang").scale(3.5).set_opacity(0.02) 
 
 def eqRange(fromValue, toValue, step = 1):
     value = fromValue
@@ -19,9 +22,9 @@ def getLineCenter(line):    # 用于得到线段中点
 def getLineLerp(line, k):
     return line.get_start() * (1 - k) + line.get_end() * k
 
-def chapter_animate(self, str1, str2):
+def chapter_animate(self, str1, str2, color = GREY_E):
     txt1 = Text(str1, color = BLUE).set_stroke(BLUE_E, 3, background = True)
-    txt2 = Text(str2, color = GREY_E)
+    txt2 = Text(str2, color = color)
     Group(txt1, txt2).arrange(buff = MED_LARGE_BUFF)
     self.play(DrawBorderThenFill(txt1), DrawBorderThenFill(txt2))
     self.wait()
@@ -35,20 +38,24 @@ def dictAppend(a, b):
 class OpeningScene(Scene): # 6s
     str1 = ""
     str2 = ""
+    style = 0
+    img_time = 1
+    txt1_time = 1
+    txt2_time = 1
 
     def construct(self):
         self.wait(0.4)
 
-        imgSelf = ImageMobject("assets/self.webp", height = 1)
+        imgSelf = ImageMobject("assets/self.png" if self.style else "assets/self.webp", height = 1)
         tmp = imgSelf.copy()
-        txt = Text(self.str1, color = BLACK)
+        txt = Text(self.str1, color = WHITE if self.style else BLACK)
         group = Group(tmp, txt).arrange()
-        self.play(FadeIn(imgSelf), imgSelf.animate.shift(getPos(tmp)), run_time = 1)
+        self.play(FadeIn(imgSelf), imgSelf.animate.shift(getPos(tmp)), run_time = self.img_time)
         self.wait(0.4)
-        self.play(Write(txt), run_time = 1)
+        self.play(Write(txt), run_time = self.txt1_time)
         self.wait(0.6)
-        txt2 = Text(self.str2, color = "#555555").next_to(group, DOWN)
-        self.play(Write(txt2), run_time = 1)
+        txt2 = Text(self.str2, color = "#aaaaaa" if self.style else "#555555").next_to(group, DOWN)
+        self.play(Write(txt2), run_time = self.txt2_time)
         self.wait()
         self.play(*[FadeOut(mobject) for mobject in self.mobjects], run_time = 1)
 
