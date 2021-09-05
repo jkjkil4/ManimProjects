@@ -11,7 +11,7 @@ poly_vertexs = [
     [1, 1.7, 0],
     [1, 0.2, 0],
     [1.4, -0.4, 0],
-    [1, -0.4, 0],
+    [0.9, -0.4, 0],
     [-0.2, -1, 0],
     [-0.5, -0.8, 0]
 ]
@@ -38,17 +38,18 @@ class PBOpeningScene(h.OpeningScene):
 class Show(Scene):
     def construct(self):
         self.add(h.txtwatermark())
-        h.chapter_animate(self, "Ⅰ", "效果展示", GREY_A)
+        h.chapter_animate(self, "1", "效果展示", GREY_A)
 
 class Use(Scene):
     def construct(self):
         self.add(h.txtwatermark())
-        h.chapter_animate(self, "Ⅱ", "使用方法", GREY_A)
+        h.chapter_animate(self, "2", "使用方法", GREY_A)
 
 class Limit_1(Scene):
     def construct(self):
         self.add(h.txtwatermark())
-        h.chapter_animate(self, "Ⅲ", "区域限制", GREY_A)
+        h.chapter_animate(self, "3", "原理", GREY_A)
+        h.chapter_animate(self, "3-1", "区域限制", GREY_A)
 
         txt1 = Text("区域限制可以分为两步")
         txt2 = VGroup(
@@ -250,6 +251,196 @@ class Limit_1(Scene):
         self.wait(1.5)
         self.play(*[FadeOut(mobj) for mobj in [poly_lines, poly_dot, txtCheck15, txtCheck16, txtCheck17, poly_horlines]])
 
+class Limit_2(Scene):
+    def construct(self):
+        self.add(h.txtwatermark())
+
+        title = Text("检测点是否在多边形内").to_corner(UP)
+        titleLine = Line().next_to(title, DOWN)
+        self.add(title, titleLine)
+        self.play(Transform(title, Text("将点限制到多边形内").to_corner(UP)))
+        self.wait(0.8)
+
+        poly_dot = Dot(radius = 0.07, color = YELLOW).shift(RIGHT * 2 + DOWN * 0.3)
+        poly_lines.shift(DOWN * 0.5 + LEFT)
+        self.play(Write(poly_lines), Write(poly_dot))
+
+        arrow = Arrow(poly_dot.get_center(), poly_dot.get_center() + [-0.9, -0.6, 0], buff = 0).set_fill(BLUE)
+        txt1 = Text("只需得到离多边形边框最近的位置即可", t2c = { "最近": BLUE })\
+            .insert_n_curves(50).scale(0.8).next_to(poly_lines, DOWN, 0.75).set_x(0)
+        txt2 = Text("（得到与每条边的最近位置，再看看哪个相距最短）", color = GREY).scale(0.6).next_to(txt1, DOWN)
+        self.play(Write(txt1))
+        self.play(GrowArrow(arrow))
+        self.play(Write(txt2))
+        self.wait(2)
+        self.play(*[FadeOut(mobj) for mobj in [title, titleLine, poly_dot, poly_lines, arrow, txt1, txt2]])
         
-        
+class Mask(Scene):
+    def construct(self):
+        self.add(h.txtwatermark())
+        h.chapter_animate(self, "3-2", "遮罩绘制", GREY_A)
+
+        txt1 = Text("要想只在框内绘制（遮罩）", t2c = { "框内": BLUE }).shift(UP * 0.3)
+        txt2 = Text("就需要将框内部的区域用合适的方式表达出来", t2c = { "内部的区域": BLUE, "表达": ORANGE }).next_to(txt1, DOWN)
+        self.play(DrawBorderThenFill(txt1))
+        self.wait(0.5)
+        self.play(Write(txt2))
+        self.wait()
+
+        poly_offset = LEFT * 4 + DOWN * 0.5
+        poly_lines.shift(poly_offset)
+        self.play(FadeOut(txt1, UP), FadeOut(txt2, UP), Write(poly_lines), run_time = 2)
+
+        txtT1 = Text("在这里，我用到了三角剖分算法", t2c = { "三角剖分": GOLD })\
+            .scale(0.8).next_to(poly_lines, LARGE_BUFF, RIGHT).to_corner(UP, LARGE_BUFF)
+        txtT2 = Text("也就是一种可以将多边形内部用许多三角形表示的算法", t2c = { "多边形内部": GOLD, "三角形": GOLD })\
+            .scale(0.8).next_to(txtT1, DOWN, aligned_edge = LEFT)
+        self.play(DrawBorderThenFill(txtT1))
+        self.wait(0.6)
+        self.play(Write(txtT2))
+
+        def tri(a, b, c):
+            result = Triangle(fill_opacity = 0.5).set_color(GOLD)
+            a_, b_, c_ = poly_vertexs[a] + poly_offset, poly_vertexs[b] + poly_offset, poly_vertexs[c] + poly_offset
+            result.set_points_as_corners([a_, b_, c_, a_])
+            return result
+        def iloop(i, ilen):
+            if(i < 0):
+                return i + ilen
+            if(i >= ilen):
+                return i - ilen
+            return i
+        clip_buff = [i for i in range(0, len(poly_vertexs))]
+        clip_index_list = [6, 7, 8, 4, 5, 1, 2, 3]
+
+        tmp_clip_buff = clip_buff.copy()
+        cliped = VGroup().set_fill(GOLD)
+        for index in clip_index_list:
+            cliped_index = tmp_clip_buff.index(index)
+            ilen = len(tmp_clip_buff)
+            cliped.add(tri(index, tmp_clip_buff[iloop(cliped_index + 1, ilen)], tmp_clip_buff[iloop(cliped_index - 1, ilen)]))
+            tmp_clip_buff.pop(cliped_index)
+        self.play(Write(cliped), run_time = 1.5)
+        self.wait(1.5)
+        self.play(FadeOut(cliped))
+        self.wait(0.5)
+
+        txtT3 = Text("首先我们要找到一个凸顶点", t2c = { "凸顶点": GOLD }).scale(0.8).next_to(txtT2, DOWN, MED_LARGE_BUFF, LEFT)
+        txtT4 = Text("如这里是一个凸顶点", t2c = { "是": GREEN, "凸顶点": GOLD }).scale(0.8).next_to(txtT3, DOWN, aligned_edge = LEFT)
+        txtT5 = Text("这里则不是一个凸顶点", t2c = { "不是": RED, "凸顶点": GOLD }).scale(0.8).next_to(txtT3, DOWN, aligned_edge = LEFT)
+        self.play(DrawBorderThenFill(txtT3))
+        self.wait(0.5)
+        self.play(Write(txtT4), run_time = 0.7)
+        self.play(Flash(poly_vertexs[6] + poly_offset, color = GREEN))
+        self.wait(0.8)
+        self.play(Transform(txtT4, txtT5), run_time = 0.7)
+        self.play(Flash(poly_offset, color = RED))
+        self.wait()
+        self.play(FadeOut(txtT4))
+
+        tmp_clip_buff = clip_buff.copy()
+        tmp_poly_lines = [*poly_lines]
+        def clip_animate(i):
+            index = clip_index_list[i]
+            cliped_index = tmp_clip_buff.index(index)
+
+            if len(tmp_poly_lines) <= 3:
+                a, b = FadeIn(cliped[i]), AnimationGroup(*[FadeOut(line) for line in tmp_poly_lines], cliped[i].animate.set_opacity(0.1))
+                tmp_clip_buff.clear()
+                tmp_poly_lines.clear()
+                return a, b
+
+            remove_line1 = tmp_poly_lines[cliped_index]
+            remove_line2 = tmp_poly_lines[iloop(cliped_index - 1, len(tmp_clip_buff))]
+            tmp_poly_lines.remove(remove_line1)
+            tmp_poly_lines.remove(remove_line2)
+            tmp_clip_buff.pop(cliped_index)
+            insert_index = iloop(cliped_index - 1, len(tmp_clip_buff))
+            insert_line = Line(
+                poly_vertexs[tmp_clip_buff[insert_index]] + poly_offset,
+                poly_vertexs[tmp_clip_buff[iloop(cliped_index, len(tmp_clip_buff))]] + poly_offset
+                )
+            tmp_poly_lines.insert(insert_index, insert_line)
+
+            return FadeIn(cliped[i]), AnimationGroup(FadeIn(insert_line), FadeOut(remove_line1), 
+                FadeOut(remove_line2), cliped[i].animate.set_opacity(0.1))
+        txtT6 = Text("比如对于这个凸顶点").scale(0.8)
+        txtT7 = Text("将其从多边形的顶点中移除的同时", t2c = { "移除": ORANGE }).scale(0.8)
+        txtT8 = Text("产生一个新的多边形和一个三角区域", t2c = { "新的多边形": BLUE, "三角区域": BLUE }).scale(0.8)
+        txtT9 = Text("对于其他的凸顶点也可以作同样的操作", t2c = { "同样的操作": ORANGE }).scale(0.8)
+        gT6_T9 = Group(txtT6, txtT7, txtT8, txtT9).arrange(DOWN, aligned_edge = LEFT).next_to(txtT3, DOWN, aligned_edge = LEFT)
+        self.play(DrawBorderThenFill(txtT6))
+        self.play(Flash(poly_vertexs[6] + poly_offset))
+        self.wait(0.8)
+        animate1, animate2 = clip_animate(0)
+        self.play(Write(txtT7))
+        self.play(animate1)
+        self.wait(0.5)
+        self.play(Write(txtT8))
+        self.play(animate2)
+        self.wait(0.8)
+        self.play(DrawBorderThenFill(txtT9))
+        self.wait()
+        for i in range(1, 3):
+            animate1, animate2 = clip_animate(i)
+            self.play(animate1, run_time = 0.7)
+            self.play(animate2, run_time = 0.7)
+            self.wait(0.2)
+        self.wait(0.5)
+        self.play(FadeOut(gT6_T9), FadeOut(txtT3))
+
+        txtT10 = Text("但是对于这个凸顶点").scale(0.8)
+        txtT11 = Text("当移除它后，所产生的多边形出现了边相交的情况", t2c = { "移除": ORANGE, "边相交": RED }).scale(0.8)
+        txtT12 = Text("因此这时是不能移除这个凸顶点的", t2c = { "不能": RED }).scale(0.8)
+        line0_5 = Line(poly_vertexs[0] + poly_offset, poly_vertexs[5] + poly_offset, color = GOLD)
+        gT10_T12 = Group(txtT10, txtT11, txtT12).arrange(DOWN, aligned_edge = LEFT).next_to(txtT2, DOWN, MED_LARGE_BUFF, LEFT)
+        self.play(DrawBorderThenFill(txtT10))
+        self.play(Flash(poly_vertexs[9] + poly_offset))
+        self.wait(0.8)
+        self.play(Write(txtT11))
+        self.play(GrowArrow(line0_5), *[line.animate.set_color(RED) for line in poly_lines[2:4]])
+        self.wait(0.8)
+        self.play(Write(txtT12))
+        self.wait(1.5)
+        self.play(FadeOut(gT10_T12), Uncreate(line0_5), *[line.animate.set_color(WHITE) for line in poly_lines[2:4]])
+
+        txtT13 = Text("继续对其他顶点进行判断和处理").scale(0.8)
+        txtT14 = Text("当多边形变为凸多边形时", t2c = { "凸多边形": GOLD }).scale(0.8)
+        txtT15 = Text("将一个顶点和其他顶点相连即可分割", t2c = { "分割": ORANGE }).scale(0.8)
+        gT13_T15 = Group(txtT13, txtT14, txtT15).arrange(DOWN, aligned_edge = LEFT).next_to(txtT2, DOWN, MED_LARGE_BUFF, LEFT)
+        line1 = Line(poly_vertexs[0] + poly_offset, poly_vertexs[2] + poly_offset, color = GOLD)
+        line2 = Line(poly_vertexs[0] + poly_offset, poly_vertexs[3] + poly_offset, color = GOLD)
+        self.play(DrawBorderThenFill(txtT13))
+        for i in range(3, 5):
+            animate1, animate2 = clip_animate(i)
+            self.play(animate1, run_time = 0.7)
+            self.play(animate2, run_time = 0.7)
+            self.wait(0.2)
+        self.wait()
+        self.play(Write(txtT14))
+        self.wait(0.5)
+        self.play(Write(txtT15))
+        self.play(GrowArrow(line1), GrowArrow(line2))
+        for i in range(5, 8):
+            animate1, animate2 = clip_animate(i)
+            self.play(animate1, run_time = 0.4)
+            self.play(animate2, run_time = 0.4)
+            if(i == 5):
+                self.remove(line1)
+            if(i == 6):
+                self.remove(line2)
+        self.wait()
+        self.play(*[clip.animate.set_opacity(0.5) for clip in cliped], run_time = 0.5)
+        self.play(*[clip.animate.set_opacity(1).set_fill(GOLD, opacity = 0.5) for clip in cliped], run_time = 0.5)
+        self.wait()
+
+        txtLast1 = Text("这样我们就将多边形的内部").scale(0.8)
+        txtLast2 = Text("表示了出来", t2c = { "表示": ORANGE }).scale(0.8)
+        group = Group(txtLast1, txtLast2).arrange(DOWN, aligned_edge = LEFT).next_to(txtT15, DOWN, MED_LARGE_BUFF, LEFT)
+        self.play(Write(txtLast1))
+        self.play(Write(txtLast2))
+        self.wait(1.5)
+        self.play(FadeOut(cliped), *[FadeOut(mobj) for mobj in [txtT1, txtT2, gT13_T15, group]])
+
+
         

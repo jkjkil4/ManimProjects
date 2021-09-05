@@ -6,7 +6,7 @@ def watermark():
     return ImageMobject("assets/self.webp", height = 4, opacity = 0.01)
 
 def txtwatermark():
-    return Text("jkjkil-jiang").scale(3.5).set_opacity(0.02) 
+    return Text("jkjkil-jiang").scale(3.5).set_opacity(0.025) 
 
 def eqRange(fromValue, toValue, step = 1):
     value = fromValue
