@@ -35,15 +35,77 @@ class PBOpeningScene(h.OpeningScene):
     img_time = 1.3
     txt1_time = 1.5
 
+class PBTimeScene(h.TimeScene):
+    info_list = [
+        ["00:13", "效果展示"]
+    ]
+
 class Show(Scene):
     def construct(self):
         self.add(h.txtwatermark())
         h.chapter_animate(self, "1", "效果展示", GREY_A)
 
-class Use(Scene):
+class Use_1(Scene):
     def construct(self):
         self.add(h.txtwatermark())
         h.chapter_animate(self, "2", "使用方法", GREY_A)
+
+        txt1 = Text("上述功能在 GameMaker Studio 2 中实现", t2c = { "GameMaker Studio 2": BLUE })
+        txt2 = Text("需要2.3及以上版本", color = GREY).scale(0.8)
+        g1_2 = Group(txt1, txt2).arrange(DOWN)
+        self.play(DrawBorderThenFill(txt1))
+        self.play(ShowCreation(txt2))
+        self.wait()
+
+        txt3 = Text("如果你需要将其用到其它GMS2项目中", t2c = { "其它GMS2项目": GOLD }).scale(0.8)
+        txt4 = Text("你只需要转移以下内容中的代码即可", t2c = { "以下内容": GOLD }).scale(0.8)
+        txtC1 = Text("oPolygonBorder", color = BLUE).scale(0.8)
+        txtC2 = Text("Script", color = GREEN).scale(0.8)
+        txtC3 = Text("shaderDrawStroke", color = ORANGE).scale(0.8)
+        Group(txt3, txt4).arrange(DOWN)
+        self.play(FadeOut(g1_2, UP), FadeIn(txt3, UP))
+        self.wait()
+        self.play(Write(txt4))
+        self.play(txt4.animate.to_corner(UP), FadeOut(txt3))
+        Group(txtC1, txtC2, txtC3).arrange(DOWN, buff = LARGE_BUFF * 1.5).next_to(txt4, DOWN, LARGE_BUFF)
+        self.play(*[FadeIn(txt) for txt in [txtC1, txtC2, txtC3]])
+        self.wait(1.5)
+        
+        def to_left(mobj):
+            l = Text("-")
+            l.move_to(mobj)
+            l.to_corner(LEFT)
+            self.play(FadeIn(l), mobj.animate.next_to(l, RIGHT), run_time = 0.6)
+            return l
+        tl1 = to_left(txtC1)
+        tl2 = to_left(txtC2)
+        tl3 = to_left(txtC3)
+        def notice(mobj, under):
+            l = Line(mobj.get_left(), mobj.get_right(), color = YELLOW).next_to(mobj, DOWN, SMALL_BUFF)
+            under.next_to(l, DOWN, SMALL_BUFF)
+            self.play(GrowArrow(l), FadeIn(under, UP))
+            self.wait()
+            self.play(Uncreate(l), FadeOut(under, DOWN))
+        
+        txtC1_ = Text("(Object) 多边形框的主要部分", t2c = { "Object": BLUE, "多边形框": GOLD, "主要": YELLOW })\
+            .scale(0.8).next_to(txtC1, DOWN, aligned_edge = LEFT)
+        txtC2_ = Text("其中包含 drawSurfaceStrokeColor viewX viewY viewW viewH", t2c = { "[5:27]": GREEN, "[28:]": GREY })\
+            .insert_n_curves(50).scale(0.8).next_to(txtC2, DOWN, aligned_edge = LEFT)
+        txtC3_ = Text("(Shader) 用于当使用遮罩或叠加框时，对多边形进行描边以达到绘制边框的效果", t2c = { "Shader": ORANGE, "使用遮罩": BLUE, "叠加框": BLUE, "绘制边框": BLUE })\
+            .scale(0.8).next_to(txtC3, DOWN, aligned_edge = LEFT)
+        self.play(Write(txtC1_))
+        self.wait()
+        self.play(Write(txtC2_), run_time = 3)
+        notice(txtC2_[5:27], Text("用于方便调用shaderDrawStroke", t2c = { "shaderDrawStroke": ORANGE }).scale(0.6))
+        notice(txtC2_[28:], Text("不重要").insert_n_curves(50).scale(0.6))
+        self.play(Write(txtC3_), run_time = 3)
+        self.wait(2)
+
+        titleLine = Line().next_to([0, TOP[1] - DEFAULT_MOBJECT_TO_EDGE_BUFFER - txtC1_.get_height() / 0.8, 0], DOWN)
+        self.play(*[FadeOut(mobj) for mobj in [txt4, txtC2, txtC3, txtC2_, txtC3_, tl1, tl2, tl3]])
+        self.wait(0.5)
+        self.play(FadeOut(txtC1_), txtC1.animate.scale(1 / 0.8).to_corner(UP).set_x(0), GrowArrow(titleLine))
+
 
 class Limit_1(Scene):
     def construct(self):
