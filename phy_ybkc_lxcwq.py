@@ -3,13 +3,6 @@ sys.path.append(".")
 import header as h
 from manimlib import *
 
-class Lines(VGroup):
-    def __init__(self, *vertexs):
-        tmp_list = []
-        for i in range(0, len(vertexs) - 1):
-            tmp_list.append(Line(vertexs[i], vertexs[i + 1]))
-        super().__init__(*tmp_list)
-
 class Ybkc(VGroup):
     def __init__(self):
         def vertex_scale(v):
