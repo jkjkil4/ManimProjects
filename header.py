@@ -1,6 +1,6 @@
 from manimlib import *
 
-defaultFontSize = 24
+defaultFontSize = 36
 
 def watermark():
     return ImageMobject("assets/self.webp", height = 4, opacity = 0.01)
@@ -46,7 +46,7 @@ class OpeningScene(Scene): # 6s
     def construct(self):
         self.wait(0.4)
 
-        imgSelf = ImageMobject("assets/self.png" if self.style else "assets/self.webp", height = 1)
+        imgSelf = ImageMobject("assets/self.png", height = 1)
         tmp = imgSelf.copy()
         txt = Text(self.str1, color = WHITE if self.style else BLACK)
         group = Group(tmp, txt).arrange()
