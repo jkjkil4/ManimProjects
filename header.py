@@ -6,7 +6,7 @@ def watermark():
     return ImageMobject("assets/self.webp", height = 4, opacity = 0.01)
 
 def txtwatermark():
-    return Text("jkjkil-jiang").scale(3.5).set_opacity(0.025) 
+    return Text("jkjkil-jiang", font = "Noto Sans Black").scale(3.5).set_opacity(0.025) 
 
 def eqRange(fromValue, toValue, step = 1):
     value = fromValue
@@ -34,6 +34,24 @@ def chapter_animate(self, str1, str2, color = GREY_E):
 def dictAppend(a, b):
     a.update(b)
     return a
+
+class Explain(VGroup):
+    def __init__(self, pos, direction, mtxt, dotcolor = BLUE_E, linecolor = BLUE, **kwargs):
+        pos_ = sum([np.array(one) for one in pos]) / len(pos) if isinstance(pos, list) else pos
+        lines = \
+            [Line(one, pos_ + direction, color = linecolor, buff = 0.02) for one in pos] \
+            if isinstance(pos, list) \
+            else [Line(pos_, pos_ + direction, color = linecolor, buff = 0.02)]
+        points = \
+            [Circle(radius = 0.03, color = dotcolor).set_fill(dotcolor, opacity = 1).move_to(one) for one in pos] \
+            if isinstance(pos, list) \
+            else [Circle(radius = 0.03, color = dotcolor).set_fill(dotcolor, opacity = 1).move_to(pos)]
+        mtxt.next_to(pos_ + direction, direction, SMALL_BUFF)
+        super().__init__(*lines, *points, mtxt, **kwargs)
+    
+    @staticmethod
+    def mtxt(txt, txtcolor = BLUE_B):
+        return Text(txt, color = txtcolor).scale(0.8)
 
 class OpeningScene(Scene): # 6s
     str1 = ""
