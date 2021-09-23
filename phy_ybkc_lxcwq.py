@@ -139,41 +139,74 @@ class Lxcwq(Group):
     def __init__(self, **kwargs):
         scale = 0.4
 
+        # block
+        block = VMobject(plot_depth = -101)
+        block.set_points_as_corners(np.array([
+            np.array([-1.5, 0.4, 0]),
+            np.array([-1.4, 0.4, 0]),
+            np.array([-1.4, -0.4, 0]),
+            np.array([-1.5, -0.4, 0]),
+            np.array([-1.5, 0.4, 0])
+            ]) * scale)
+        block.set_fill("#a4a4a4", opacity = 1).set_stroke(width = 1)
+        self.block = block
+
+        # bar
+        bar = VMobject(plot_depth = -101)
+        bar.set_points_as_corners(np.array([
+            np.array([-1.4, 0.4, 0]),
+            np.array([-1.4, -0.4, 0]),
+            np.array([2, -0.4, 0]),
+            np.array([2, 0.4, 0]),
+            np.array([-1.4, 0.4, 0])
+            ]) * scale)
+        bar.set_fill("#aaaaaa", opacity = 1).set_stroke(width = 1)
+        self.bar = bar
+
         # body
-        body_vertex1 = np.array([
+        body = VMobject(plot_depth = -100)
+        body.set_points((Arc.create_quadratic_bezier_points(-PI) * 3 + [0, -1.5, 0]) * scale)
+        body.add_points_as_corners(np.array([
             np.array([-3, -1.5, 0]),
             np.array([-3, -1.4, 0])
-        ]) * scale
-        body_vertex2 = np.array([
+            ]) * scale)
+        body.append_points(np.array([
+            np.array([-3, -1.4, 0]), 
+            np.array([-2.5, -0.8, 0]), 
+            np.array([-2.5, 0, 0])
+            ]) * scale)
+        body.add_points_as_corners(np.array([
+            np.array([-2.5, 0, 0]),
             np.array([-2.5, 0.6, 0]),
             np.array([-1.5, 0.6, 0]),
             np.array([-1.5, -1.5, 0])
-        ]) * scale
-        body_vertex3 = np.array([
+            ]) * scale)
+        body.append_points((Arc.create_quadratic_bezier_points(PI, PI) * [1, 0.9, 0] * 1.5 + [0, -1.5, 0]) * scale)
+        body.add_points_as_corners(np.array([
             np.array([1.5, -1.5, 0]),
             np.array([1.5, 1, 0]),
             np.array([3.25, 1, 0]),
             np.array([3.25, -1, 0]),
             np.array([3, -1.5, 0])
-        ]) * scale
-        body = VMobject()
-        body_arc1 = (Arc.create_quadratic_bezier_points(-PI) * 3 + [0, -1.5, 0]) * scale
-        body.set_points(body_arc1)
-        body.add_points_as_corners(body_vertex1)
-        body.append_points(np.array([
-            np.array([-3, -1.4, 0]), 
-            np.array([-2.5, -0.8, 0]), 
-            np.array([-2.5, 0.6, 0])
             ]) * scale)
-        body.add_points_as_corners(body_vertex2)
-        body_arc2 = (Arc.create_quadratic_bezier_points(PI, PI) * [1, 0.9, 0] * 1.5 + [0, -1.5, 0]) * scale
-        body.append_points(body_arc2)
-        body.add_points_as_corners(body_vertex3)
         body.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
         self.body = body
 
-        super().__init__(body, **kwargs)
-        
+        # surf
+        surf = VMobject(plot_depth = -99)
+        surf.set_points((Arc.create_quadratic_bezier_points(PI, PI) * 2.8 + [0, -1.5, 0]) * scale)
+        surf.add_points_as_corners(np.array([
+            np.array([2.8, -1.5, 0]),
+            np.array([1.7, -1.5, 0])
+        ]) * scale)
+        surf.append_points((Arc.create_quadratic_bezier_points(-PI) * [1, 0.9, 0] * 1.7 + [0, -1.5, 0]) * scale)
+        surf.add_points_as_corners(np.array([
+            np.array([-1.7, -1.5, 0]),
+            np.array([-2.8, -1.5, 0])
+        ]) * scale)
+        surf.set_fill("#d0d0d0", opacity = 1).set_stroke(width = 1)
+
+        super().__init__(block, bar, body, surf, **kwargs)
 
 class YbkcScene(Scene):
     def construct(self):
