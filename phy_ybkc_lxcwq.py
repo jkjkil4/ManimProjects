@@ -4,10 +4,10 @@ import header as h
 from manimlib import *
 import math as m
 
+scale = 0.4
+
 class Ybkc(Group):
     def __init__(self, **kwargs):
-        scale = 0.4
-
         # back
         poly_back_vertexs = np.array([
             np.array([-0.8, 3, 0]),
@@ -136,8 +136,20 @@ class Ybkc(Group):
     #     super().scale(scale_factor, min_scale_factor, about_point, about_edge)
 
 class Lxcwq(Group):
+    class GradLine(Line):
+        def update_grad_pos(self, rot, x, y, y_radius):
+            rot %= m.tau
+            if rot >= m.pi * 0.5 and rot <= m.pi * 1.5:
+                self.set_opacity(0)
+            else:
+                self.set_opacity(1)
+                self.next_to([x, y - y_radius * m.sin(rot), 0], RIGHT, 0)
+
+    def drot(self, d):
+        self.rot += d
+
     def __init__(self, **kwargs):
-        scale = 0.4
+        self.rot = 0
 
         # block
         block = VMobject(plot_depth = -101)
@@ -152,7 +164,7 @@ class Lxcwq(Group):
         self.block = block
 
         # bar
-        bar = VMobject(plot_depth = -101)
+        bar = VMobject(plot_depth = -102)
         bar.set_points_as_corners(np.array([
             np.array([-1.4, 0.4, 0]),
             np.array([-1.4, -0.4, 0]),
@@ -162,6 +174,17 @@ class Lxcwq(Group):
             ]) * scale)
         bar.set_fill("#aaaaaa", opacity = 1).set_stroke(width = 1)
         self.bar = bar
+
+        # backbody
+        backbody = VMobject(plot_depth = -101)
+        backbody.set_points_as_corners(np.array([
+            np.array([3, 0.8, 0]),
+            np.array([6, 0.8, 0]),
+            np.array([6, -0.8, 0]),
+            np.array([3, -0.8, 0])
+            ]) * scale)
+        backbody.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
+        self.backbody = backbody
 
         # body
         body = VMobject(plot_depth = -100)
@@ -205,8 +228,77 @@ class Lxcwq(Group):
             np.array([-2.8, -1.5, 0])
         ]) * scale)
         surf.set_fill("#d0d0d0", opacity = 1).set_stroke(width = 1)
+        self.surf = surf
 
-        super().__init__(block, bar, body, surf, **kwargs)
+        # fixer
+        fixer1 = VMobject(plot_depth = -100)
+        fixer1.set_points_as_corners(np.array([
+            np.array([8.5, 0.55, 0]),
+            np.array([8.8, 0.55, 0]),
+            np.array([8.8, -0.55, 0]),
+            np.array([8.5, -0.55, 0]),
+            np.array([8.5, 0.55, 0])
+            ]) * scale)
+        fixer1.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
+        fixer2 = VMobject(plot_depth = -99)
+        fixer2.set_points_as_corners(np.array([
+            np.array([8.8, 0.6, 0]),
+            np.array([10.35, 0.6, 0]),
+            np.array([10.4, 0.55, 0]),
+            np.array([10.4, -0.55, 0]),
+            np.array([10.35, -0.6, 0]),
+            np.array([8.8, -0.6, 0]),
+            np.array([8.8, 0.6, 0])
+            ]) * scale)
+        fixer2.set_fill("#d0d0d0", opacity = 1).set_stroke(width = 1)
+        fixer3 = VMobject(plot_depth = -98)
+        fixer3.set_points_as_corners(np.array([
+            np.array([9, 0.65, 0]),
+            np.array([10.1, 0.65, 0]),
+            np.array([10.1, -0.65, 0]),
+            np.array([9, -0.65, 0]),
+            np.array([9, 0.65, 0])
+            ]) * scale)
+        fixer3.set_fill("#c0c0d0", opacity = 1).set_stroke(width = 1)
+        fixer = Group(fixer1, fixer2, fixer3)
+
+        # slider
+        slider1 = VMobject(plot_depth = -99)
+        slider1.set_points_as_corners(np.array([
+            np.array([3.45, 0.85, 0]),
+            np.array([8.4, 0.85, 0]),
+            np.array([8.5, 0.65, 0]),
+            np.array([8.5, -0.65, 0]),
+            np.array([8.4, -0.85, 0]),
+            np.array([3.45, -0.85, 0]),
+            np.array([3.45, 0.85, 0])
+            ]) * scale)
+        slider1.set_fill("#d0d0d0", opacity = 1).set_stroke(width = 1)
+        slider2 = VMobject(plot_depth = -98)
+        slider2.set_points_as_corners(np.array([
+            np.array([5.9, 0.9, 0]),
+            np.array([8.3, 0.9, 0]),
+            np.array([8.3, -0.9, 0]),
+            np.array([5.9, -0.9, 0]),
+            np.array([5.9, 0.9, 0])
+            ]) * scale)
+        slider2.set_fill("#c0c0d0", opacity = 1).set_stroke(width = 1)
+        slider_grad = Group(plot_depth = -90)
+        def slider_grad_updater(i):
+            return lambda mobj, dt: mobj.update_grad_pos(
+                self.rot - m.tau / 50 * i, 
+                *slider1.get_left()[0:2], slider1.get_height() / 2
+                )
+        for i in range(0, 50):
+            grad = self.GradLine(
+                np.array([3.47, 0, 0]) * scale, np.array([4.2 if i % 5 == 0 else 3.85, 0, 0]) * scale, 
+                color = "#525252", plot_depth = -90
+                ).set_stroke(width = 2)
+            grad.add_updater(slider_grad_updater(i))
+            slider_grad.add(grad)
+        self.slider = slider = Group(slider1, slider2, slider_grad)
+
+        super().__init__(block, bar, backbody, body, surf, fixer, slider, **kwargs)
 
 class YbkcScene(Scene):
     def construct(self):
@@ -371,7 +463,7 @@ class YbkcScene(Scene):
             FadeIn(txtYbkc2), FadeIn(lineYbkc2)
             )
         self.wait()
-        self.play(ybkc.animate.shift(DOWN * 8), rate_func = rush_into)        
+        self.play(ybkc.animate.shift(DOWN * 8), rate_func = rush_into)
 
         # self.play(Group(ybkc, obj).animate.shift(RIGHT * 8.6 + DOWN * 2.4).scale(3.4))
         # self.play(*[grad.animate.set_stroke(width = 1.2) for grad in [*ybkc.body_grads, *ybkc.sd_grads]], run_time = 0.6)
@@ -393,6 +485,12 @@ class YbkcScene(Scene):
         
 class LxcwqScene(Scene):
     def construct(self):
-        self.add(h.txtwatermark())
+        # self.add(h.txtwatermark().set_plot_depth(-20000))
 
-        self.add(Lxcwq())
+
+        def updater(mobj, dt):
+            mobj.drot(dt)
+        lxcwq = Lxcwq().shift(LEFT * 4 + DOWN * 3).scale(6)
+        self.add(lxcwq)
+        lxcwq.add_updater(updater)
+        self.wait(1.25)
