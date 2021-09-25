@@ -139,15 +139,40 @@ class Lxcwq(Group):
     class GradLine(Line):
         def update_grad_pos(self, rot, x, y, y_radius):
             rot %= m.tau
+            self.move_to([x, y - y_radius * m.sin(rot), 0])
             if rot >= m.pi * 0.5 and rot <= m.pi * 1.5:
                 self.set_opacity(0)
             else:
                 self.set_opacity(1)
-                self.move_to([x, y - y_radius * m.sin(rot), 0])
             return self
+    class GradNumber(Text):
+        def update_grad_pos(self, rot, mobj):
+            rot %= m.tau
+            rot -= m.pi
+            self.next_to(mobj, buff = 0)
+            self.set_opacity(1 - max(0, 1 - max(0, abs(rot) - m.pi * 2 / 3) / (m.pi / 4)))
+            # if rot < m.pi * 0.5 or rot <= m.pi * 1.5:
+            #     self.set_opacity(0)
+            # else:
+            #     self.set_opacity(1)
+            #     self.next_to(mobj, buff = 0)
+    
+    @staticmethod
+    def mm2rot(mm):
+        return mm / 0.5 * m.tau
+    @staticmethod
+    def rot2mm(rot):
+        return rot / m.tau * 0.5
+    @staticmethod
+    def grad2rot(grad):
+        return m.tau / 50 * grad
+    @staticmethod
+    def rot2grad(rot):
+        return rot / m.tau * 50
 
     def __init__(self, **kwargs):
         self.rot = ValueTracker(0)
+        self.fixer_rot = ValueTracker(0)
 
         # block
         block = VMobject(plot_depth = -101)
@@ -165,8 +190,8 @@ class Lxcwq(Group):
         bar.set_points_as_corners(np.array([
             np.array([-1.4, 0.4, 0]),
             np.array([-1.4, -0.4, 0]),
-            np.array([2, -0.4, 0]),
-            np.array([2, 0.4, 0]),
+            np.array([3.45, -0.4, 0]),
+            np.array([3.45, 0.4, 0]),
             np.array([-1.4, 0.4, 0])
             ]) * scale)
         bar.set_fill("#aaaaaa", opacity = 1).set_stroke(width = 1)
@@ -180,9 +205,18 @@ class Lxcwq(Group):
             np.array([3, -0.8, 0])
             ]) * scale)
         backbody.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
-        backbody_line = Line([3 * scale, 0, 0], [6 * scale, 0, 0], color = GREY_D, plot_depth = -100).set_stroke(width = 0.35)
+        backbody_line = Line([3 * scale, 0, 0], [6 * scale, 0, 0], color = GREY_D, plot_depth = -100).set_stroke(width = 0.4)
         self.backbody_grad = backbody_grad = Group(plot_depth = -100)
-        
+        self.backbody_grad2 = backbody_grad2 = Group(plot_depth = -100)
+        self.backbody_number = backbody_number = Group(plot_depth = -100)
+        for i in range(0, 20):
+            x = 3.45 + 0.1 * i
+            y = 0.36 if i % 5 == 0 else 0.22
+            backbody_grad.add(Line(np.array([x, 0.05, 0]) * scale, np.array([x, y, 0]) * scale, color = GREY_D).set_stroke(width = 0.4))
+            backbody_grad2.add(Line(np.array([x + 0.05, -0.05, 0]) * scale, np.array([x + 0.05, -0.25, 0]) * scale, color = GREY_D).set_stroke(width = 0.35))
+            if i % 5 == 0:
+                number = Text(str(i), color = GREY_D, font = "Noto Sans Thin").scale(0.2).next_to(backbody_grad[i], UP, 0.02)
+                backbody_number.add(number)
 
         # body
         body = VMobject(plot_depth = -100)
@@ -263,17 +297,17 @@ class Lxcwq(Group):
         fixer_whorl = Group(plot_depth = -90)
         def fixer_whorl_updater(i):
             return lambda mobj, dt: mobj.update_grad_pos(
-                self.rot.get_value() - m.tau / 25 * i,
+                self.rot.get_value() + self.fixer_rot.get_value() - m.tau / 10 * i,
                 *fixer3.get_center()[0:2], fixer3.get_height() / 2
-            ).set_stroke(width = 14 * m.cos(self.rot.get_value() - m.tau / 25 * i))
-        for i in range(0, 25):
+            ).set_stroke(width = 14 * m.cos(self.rot.get_value() - m.tau / 10 * i))
+        for i in range(0, 10):
             whorl = self.GradLine(
                 np.array([9, 0, 0]) * scale, np.array([10.1, 0, 0]) * scale,
                 color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), buff = 0.005, plot_depth = -90
                 ).set_stroke(width = 14)
             whorl.add_updater(fixer_whorl_updater(i))
             fixer_whorl.add(whorl)
-        fixer = Group(fixer1, fixer2, fixer3)
+        fixer = Group(fixer1, fixer2, fixer3, fixer_whorl)
 
         # slider
         slider1 = VMobject(plot_depth = -99)
@@ -306,7 +340,7 @@ class Lxcwq(Group):
         def slider_grad_updater(i):
             return lambda mobj, dt: mobj.update_grad_pos(
                 self.rot.get_value() - m.tau / 50 * i, 
-                slider1.get_left()[0] + mobj.get_width() / 2, slider1.get_left()[1], slider1.get_height() / 2
+                slider1.get_left()[0] + mobj.get_width() / 2, slider1.get_left()[1], slider1.get_height() / 2.03
                 )
         for i in range(0, 50):
             grad = self.GradLine(
@@ -318,27 +352,42 @@ class Lxcwq(Group):
         slider_whorl = Group(plot_depth = -90)
         def slider_whorl_updater(i):
             return lambda mobj, dt: mobj.update_grad_pos(
-                self.rot.get_value() - m.tau / 25 * i,
+                self.rot.get_value() - m.tau / 10 * i,
                 *slider2.get_center()[0:2], slider2.get_height() / 2
             ).set_stroke(
                 # rgb_to_color(color_to_rgb("#b6b6c0") * (-m.sin(self.rot.get_value() - m.tau / 25 * i) * 0.2 + 0.8)), 
-                width = 17 * m.cos(self.rot.get_value() - m.tau / 25 * i)
+                width = 17 * m.cos(self.rot.get_value() - m.tau / 10 * i)
             )
-        for i in range(0, 25):
+        for i in range(0, 10):
             whorl = self.GradLine(
                 np.array([5.9, 0, 0]) * scale, np.array([8.3, 0, 0]) * scale,
                 color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), buff = 0.005, plot_depth = -90
                 ).set_stroke(width = 17)
             whorl.add_updater(slider_whorl_updater(i))
             slider_whorl.add(whorl)
-        self.slider = slider = Group(slider1, slider2)
+        self.slider_number = slider_number = Group(plot_depth = -90)
+        def slider_number_updater(i):
+            return lambda mobj, dt: mobj.update_grad_pos(self.rot.get_value() - m.tau / 50 * i, slider_grad[i])
+        for i in range(0, 50, 5):
+            number = self.GradNumber(str(i), color = GREY_D, font = "Noto Sans Thin", plot_depth = -90).scale(0.2)
+            number.add_updater(slider_number_updater(i))
+            slider_number.add(number)
+        self.slider = slider = Group(slider1, slider2, slider_whorl)
         # self.slider = slider = Group(slider1, slider_grad)
+
+        bar.add_updater(lambda mobj, dt: mobj.next_to(slider, LEFT, buff = 0))
+        slider.add_updater(
+            lambda mobj, dt: mobj.next_to([
+                self.backbody_grad[0].get_x() + self.rot2mm(self.rot.get_value()) * (backbody_grad[1].get_x() - backbody_grad[0].get_x()), 
+                backbody_line.get_y(), 0
+                ], buff = 0))
+        fixer.add_updater(lambda mobj, dt: mobj.next_to(slider, buff = 0))
 
         super().__init__(
             block, bar, 
-            backbody, backbody_line, backbody_grad, 
+            backbody, backbody_line, backbody_grad, backbody_grad2, backbody_number,
             body, surf, fixer, 
-            slider, slider_grad, slider_whorl, fixer_whorl, 
+            slider, slider_grad, slider_number,
             **kwargs
             )
 
@@ -527,10 +576,14 @@ class YbkcScene(Scene):
         
 class LxcwqScene(Scene):
     def construct(self):
-        self.add(h.txtwatermark().set_plot_depth(-20000))
+        wm = h.txtwatermark().set_plot_depth(-20000)
+        self.add(wm)
 
         lxcwq = Lxcwq()
         self.add(lxcwq)
+        self.wait()
         self.play(lxcwq.animate.scale(4).shift(LEFT * 4 + DOWN))
-        self.play(lxcwq.rot.increment_value, 8, run_time = 4)
+        self.wait()
+        self.play(lxcwq.rot.animate.set_value(Lxcwq.mm2rot(2)), run_time = 8)
+        print(lxcwq.rot.get_value())
         self.wait()
