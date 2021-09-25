@@ -143,13 +143,11 @@ class Lxcwq(Group):
                 self.set_opacity(0)
             else:
                 self.set_opacity(1)
-                self.next_to([x, y - y_radius * m.sin(rot), 0], RIGHT, 0)
-
-    def drot(self, d):
-        self.rot += d
+                self.move_to([x, y - y_radius * m.sin(rot), 0])
+            return self
 
     def __init__(self, **kwargs):
-        self.rot = 0
+        self.rot = ValueTracker(0)
 
         # block
         block = VMobject(plot_depth = -101)
@@ -161,10 +159,9 @@ class Lxcwq(Group):
             np.array([-1.5, 0.4, 0])
             ]) * scale)
         block.set_fill("#a4a4a4", opacity = 1).set_stroke(width = 1)
-        self.block = block
 
         # bar
-        bar = VMobject(plot_depth = -102)
+        self.bar = bar = VMobject(plot_depth = -102)
         bar.set_points_as_corners(np.array([
             np.array([-1.4, 0.4, 0]),
             np.array([-1.4, -0.4, 0]),
@@ -173,7 +170,6 @@ class Lxcwq(Group):
             np.array([-1.4, 0.4, 0])
             ]) * scale)
         bar.set_fill("#aaaaaa", opacity = 1).set_stroke(width = 1)
-        self.bar = bar
 
         # backbody
         backbody = VMobject(plot_depth = -101)
@@ -184,7 +180,9 @@ class Lxcwq(Group):
             np.array([3, -0.8, 0])
             ]) * scale)
         backbody.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
-        self.backbody = backbody
+        backbody_line = Line([3 * scale, 0, 0], [6 * scale, 0, 0], color = GREY_D, plot_depth = -100).set_stroke(width = 0.35)
+        self.backbody_grad = backbody_grad = Group(plot_depth = -100)
+        
 
         # body
         body = VMobject(plot_depth = -100)
@@ -213,7 +211,6 @@ class Lxcwq(Group):
             np.array([3, -1.5, 0])
             ]) * scale)
         body.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
-        self.body = body
 
         # surf
         surf = VMobject(plot_depth = -99)
@@ -228,7 +225,6 @@ class Lxcwq(Group):
             np.array([-2.8, -1.5, 0])
         ]) * scale)
         surf.set_fill("#d0d0d0", opacity = 1).set_stroke(width = 1)
-        self.surf = surf
 
         # fixer
         fixer1 = VMobject(plot_depth = -100)
@@ -253,13 +249,30 @@ class Lxcwq(Group):
         fixer2.set_fill("#d0d0d0", opacity = 1).set_stroke(width = 1)
         fixer3 = VMobject(plot_depth = -98)
         fixer3.set_points_as_corners(np.array([
-            np.array([9, 0.65, 0]),
-            np.array([10.1, 0.65, 0]),
-            np.array([10.1, -0.65, 0]),
-            np.array([9, -0.65, 0]),
-            np.array([9, 0.65, 0])
+            np.array([9, 0.63, 0]),
+            np.array([9.02, 0.65, 0]),
+            np.array([10.08, 0.65, 0]),
+            np.array([10.1, 0.63, 0]),
+            np.array([10.1, -0.63, 0]),
+            np.array([10.08, -0.65, 0]),
+            np.array([9.02, -0.65, 0]),
+            np.array([9, -0.63, 0]),
+            np.array([9, 0.63, 0])
             ]) * scale)
         fixer3.set_fill("#c0c0d0", opacity = 1).set_stroke(width = 1)
+        fixer_whorl = Group(plot_depth = -90)
+        def fixer_whorl_updater(i):
+            return lambda mobj, dt: mobj.update_grad_pos(
+                self.rot.get_value() - m.tau / 25 * i,
+                *fixer3.get_center()[0:2], fixer3.get_height() / 2
+            ).set_stroke(width = 14 * m.cos(self.rot.get_value() - m.tau / 25 * i))
+        for i in range(0, 25):
+            whorl = self.GradLine(
+                np.array([9, 0, 0]) * scale, np.array([10.1, 0, 0]) * scale,
+                color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), buff = 0.005, plot_depth = -90
+                ).set_stroke(width = 14)
+            whorl.add_updater(fixer_whorl_updater(i))
+            fixer_whorl.add(whorl)
         fixer = Group(fixer1, fixer2, fixer3)
 
         # slider
@@ -273,32 +286,61 @@ class Lxcwq(Group):
             np.array([3.45, -0.85, 0]),
             np.array([3.45, 0.85, 0])
             ]) * scale)
+        # slider1.set_fill("#d0d0d0", opacity = 1).set_color_by_gradient(["#d0d0d0", "#d0d0d0", "#d0d0d0", "#848484", "#848484", "#848484"]).set_stroke(WHITE, width = 1)
         slider1.set_fill("#d0d0d0", opacity = 1).set_stroke(width = 1)
         slider2 = VMobject(plot_depth = -98)
         slider2.set_points_as_corners(np.array([
-            np.array([5.9, 0.9, 0]),
-            np.array([8.3, 0.9, 0]),
-            np.array([8.3, -0.9, 0]),
-            np.array([5.9, -0.9, 0]),
-            np.array([5.9, 0.9, 0])
+            np.array([5.9, 0.88, 0]),
+            np.array([5.92, 0.9, 0]),
+            np.array([8.28, 0.9, 0]),
+            np.array([8.3, 0.88, 0]),
+            np.array([8.3, -0.88, 0]),
+            np.array([8.28, -0.9, 0]),
+            np.array([5.92, -0.9, 0]),
+            np.array([5.9, -0.88, 0]),
+            np.array([5.9, 0.88, 0])
             ]) * scale)
-        slider2.set_fill("#c0c0d0", opacity = 1).set_stroke(width = 1)
-        slider_grad = Group(plot_depth = -90)
+        # slider2.set_fill("#c0c0ca", opacity = 1).set_color_by_gradient(["#c0c0ca", "#c0c0ca", "#c0c0ca", "#c0c0ca", "#7a7a80", "#7a7a80", "#7a7a80", "#c0c0ca"]).set_stroke(WHITE, width = 1)
+        slider2.set_fill("#c0c0ca", opacity = 1).set_stroke(width = 1)
+        self.slider_grad = slider_grad = Group(plot_depth = -90)
         def slider_grad_updater(i):
             return lambda mobj, dt: mobj.update_grad_pos(
-                self.rot - m.tau / 50 * i, 
-                *slider1.get_left()[0:2], slider1.get_height() / 2
+                self.rot.get_value() - m.tau / 50 * i, 
+                slider1.get_left()[0] + mobj.get_width() / 2, slider1.get_left()[1], slider1.get_height() / 2
                 )
         for i in range(0, 50):
             grad = self.GradLine(
                 np.array([3.47, 0, 0]) * scale, np.array([4.2 if i % 5 == 0 else 3.85, 0, 0]) * scale, 
-                color = "#525252", plot_depth = -90
-                ).set_stroke(width = 2)
+                color = GREY_D, plot_depth = -90
+                ).set_stroke(width = 0.35)
             grad.add_updater(slider_grad_updater(i))
             slider_grad.add(grad)
-        self.slider = slider = Group(slider1, slider2, slider_grad)
+        slider_whorl = Group(plot_depth = -90)
+        def slider_whorl_updater(i):
+            return lambda mobj, dt: mobj.update_grad_pos(
+                self.rot.get_value() - m.tau / 25 * i,
+                *slider2.get_center()[0:2], slider2.get_height() / 2
+            ).set_stroke(
+                # rgb_to_color(color_to_rgb("#b6b6c0") * (-m.sin(self.rot.get_value() - m.tau / 25 * i) * 0.2 + 0.8)), 
+                width = 17 * m.cos(self.rot.get_value() - m.tau / 25 * i)
+            )
+        for i in range(0, 25):
+            whorl = self.GradLine(
+                np.array([5.9, 0, 0]) * scale, np.array([8.3, 0, 0]) * scale,
+                color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), buff = 0.005, plot_depth = -90
+                ).set_stroke(width = 17)
+            whorl.add_updater(slider_whorl_updater(i))
+            slider_whorl.add(whorl)
+        self.slider = slider = Group(slider1, slider2)
+        # self.slider = slider = Group(slider1, slider_grad)
 
-        super().__init__(block, bar, backbody, body, surf, fixer, slider, **kwargs)
+        super().__init__(
+            block, bar, 
+            backbody, backbody_line, backbody_grad, 
+            body, surf, fixer, 
+            slider, slider_grad, slider_whorl, fixer_whorl, 
+            **kwargs
+            )
 
 class YbkcScene(Scene):
     def construct(self):
@@ -485,12 +527,10 @@ class YbkcScene(Scene):
         
 class LxcwqScene(Scene):
     def construct(self):
-        # self.add(h.txtwatermark().set_plot_depth(-20000))
+        self.add(h.txtwatermark().set_plot_depth(-20000))
 
-
-        def updater(mobj, dt):
-            mobj.drot(dt)
-        lxcwq = Lxcwq().shift(LEFT * 4 + DOWN * 3).scale(6)
+        lxcwq = Lxcwq()
         self.add(lxcwq)
-        lxcwq.add_updater(updater)
-        self.wait(1.25)
+        self.play(lxcwq.animate.scale(4).shift(LEFT * 4 + DOWN))
+        self.play(lxcwq.rot.increment_value, 8, run_time = 4)
+        self.wait()
