@@ -145,17 +145,31 @@ class Lxcwq(Group):
             else:
                 self.set_opacity(1)
             return self
+    class Whorl(VMobject):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.set_stroke(width = 0)
+
+        def update_whorl(self, rot, x, y, x_radius, y_radius):
+            rot %= m.tau
+            yy = y - y_radius * m.sin(rot)
+            self.move_to([x, yy, 0])
+            if rot >= m.pi * 0.5 and rot <= m.pi * 1.5:
+                self.set_opacity(0)
+            else:
+                self.set_opacity(1)
+            yoff = y_radius / 16 * m.cos(rot)
+            self.set_points_as_corners([
+                [x - x_radius, yy + yoff, 0], [x + x_radius, yy + yoff, 0],
+                [x + x_radius, yy - yoff, 0], [x - x_radius, yy - yoff, 0],
+                ]).close_path()
+            return self
     class GradNumber(Text):
         def update_grad_pos(self, rot, mobj):
             rot %= m.tau
             rot -= m.pi
             self.next_to(mobj, buff = 0)
             self.set_opacity(1 - max(0, 1 - max(0, abs(rot) - m.pi * 2 / 3) / (m.pi / 4)))
-            # if rot < m.pi * 0.5 or rot <= m.pi * 1.5:
-            #     self.set_opacity(0)
-            # else:
-            #     self.set_opacity(1)
-            #     self.next_to(mobj, buff = 0)
     
     @staticmethod
     def mm2rot(mm):
@@ -215,7 +229,7 @@ class Lxcwq(Group):
             backbody_grad.add(Line(np.array([x, 0.05, 0]) * scale, np.array([x, y, 0]) * scale, color = GREY_D).set_stroke(width = 0.4))
             backbody_grad2.add(Line(np.array([x + 0.05, -0.05, 0]) * scale, np.array([x + 0.05, -0.25, 0]) * scale, color = GREY_D).set_stroke(width = 0.35))
             if i % 5 == 0:
-                number = Text(str(i), color = GREY_D, font = "Noto Sans Thin").scale(0.2).next_to(backbody_grad[i], UP, 0.02)
+                number = Text(str(i), color = "#7a7a7a", font = "Noto Sans Thin").scale(0.2).next_to(backbody_grad[i], UP, 0.02)
                 backbody_number.add(number)
 
         # body
@@ -296,15 +310,12 @@ class Lxcwq(Group):
         fixer3.set_fill("#c0c0d0", opacity = 1).set_stroke(width = 1)
         fixer_whorl = Group(plot_depth = -90)
         def fixer_whorl_updater(i):
-            return lambda mobj, dt: mobj.update_grad_pos(
-                self.rot.get_value() + self.fixer_rot.get_value() - m.tau / 10 * i,
-                *fixer3.get_center()[0:2], fixer3.get_height() / 2
-            ).set_stroke(width = 14 * m.cos(self.rot.get_value() - m.tau / 10 * i))
+            return lambda mobj: mobj.update_whorl(
+                self.rot.get_value() - m.tau / 10 * i,
+                *fixer3.get_center()[0:2], fixer3.get_width() / 2.05, fixer3.get_height() / 2.03
+                )
         for i in range(0, 10):
-            whorl = self.GradLine(
-                np.array([9, 0, 0]) * scale, np.array([10.1, 0, 0]) * scale,
-                color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), buff = 0.005, plot_depth = -90
-                ).set_stroke(width = 14)
+            whorl = self.Whorl(color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), plot_depth = -90)
             whorl.add_updater(fixer_whorl_updater(i))
             fixer_whorl.add(whorl)
         fixer = Group(fixer1, fixer2, fixer3, fixer_whorl)
@@ -320,7 +331,6 @@ class Lxcwq(Group):
             np.array([3.45, -0.85, 0]),
             np.array([3.45, 0.85, 0])
             ]) * scale)
-        # slider1.set_fill("#d0d0d0", opacity = 1).set_color_by_gradient(["#d0d0d0", "#d0d0d0", "#d0d0d0", "#848484", "#848484", "#848484"]).set_stroke(WHITE, width = 1)
         slider1.set_fill("#d0d0d0", opacity = 1).set_stroke(width = 1)
         slider2 = VMobject(plot_depth = -98)
         slider2.set_points_as_corners(np.array([
@@ -334,7 +344,6 @@ class Lxcwq(Group):
             np.array([5.9, -0.88, 0]),
             np.array([5.9, 0.88, 0])
             ]) * scale)
-        # slider2.set_fill("#c0c0ca", opacity = 1).set_color_by_gradient(["#c0c0ca", "#c0c0ca", "#c0c0ca", "#c0c0ca", "#7a7a80", "#7a7a80", "#7a7a80", "#c0c0ca"]).set_stroke(WHITE, width = 1)
         slider2.set_fill("#c0c0ca", opacity = 1).set_stroke(width = 1)
         self.slider_grad = slider_grad = Group(plot_depth = -90)
         def slider_grad_updater(i):
@@ -351,29 +360,22 @@ class Lxcwq(Group):
             slider_grad.add(grad)
         slider_whorl = Group(plot_depth = -90)
         def slider_whorl_updater(i):
-            return lambda mobj, dt: mobj.update_grad_pos(
+            return lambda mobj: mobj.update_whorl(
                 self.rot.get_value() - m.tau / 10 * i,
-                *slider2.get_center()[0:2], slider2.get_height() / 2
-            ).set_stroke(
-                # rgb_to_color(color_to_rgb("#b6b6c0") * (-m.sin(self.rot.get_value() - m.tau / 25 * i) * 0.2 + 0.8)), 
-                width = 17 * m.cos(self.rot.get_value() - m.tau / 10 * i)
-            )
+                *slider2.get_center()[0:2], slider2.get_width() / 2.05, slider2.get_height() / 2.03
+                )
         for i in range(0, 10):
-            whorl = self.GradLine(
-                np.array([5.9, 0, 0]) * scale, np.array([8.3, 0, 0]) * scale,
-                color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), buff = 0.005, plot_depth = -90
-                ).set_stroke(width = 17)
+            whorl = self.Whorl(color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), plot_depth = -90)
             whorl.add_updater(slider_whorl_updater(i))
             slider_whorl.add(whorl)
         self.slider_number = slider_number = Group(plot_depth = -90)
         def slider_number_updater(i):
             return lambda mobj, dt: mobj.update_grad_pos(self.rot.get_value() - m.tau / 50 * i, slider_grad[i])
         for i in range(0, 50, 5):
-            number = self.GradNumber(str(i), color = GREY_D, font = "Noto Sans Thin", plot_depth = -90).scale(0.2)
+            number = self.GradNumber(str(i), color = "#7a7a7a", font = "Noto Sans Thin", plot_depth = -90).scale(0.2)
             number.add_updater(slider_number_updater(i))
             slider_number.add(number)
         self.slider = slider = Group(slider1, slider2, slider_whorl)
-        # self.slider = slider = Group(slider1, slider_grad)
 
         bar.add_updater(lambda mobj, dt: mobj.next_to(slider, LEFT, buff = 0))
         slider.add_updater(
