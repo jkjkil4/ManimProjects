@@ -3,6 +3,24 @@ sys.path.append(".")
 from manimlib import *
 import header
 
+class NumberPlaneScene(Scene):
+    def construct(self):
+        nump = NumberPlane((-12, 12), (-12, 12))
+        sqrGraph = nump.get_graph(lambda x: x ** 2, color = GREEN)
+        derGraph = nump.get_graph(lambda x: 2 * x - 1, color = ORANGE)
+        dot = Dot([1, 1, 0], color = ORANGE)
+        matrix = [[1, 0.5], [0, 1]]
+        group = Group(nump, sqrGraph, derGraph, dot)
+        self.play(ShowCreation(nump, lag_ratio = 0.01), run_time = 1.5)
+        self.play(ShowCreation(sqrGraph))
+        self.wait(0.5)
+        self.play(Write(dot), FocusOn(dot.get_center()))
+        self.play(ShowCreation(derGraph))
+        self.wait()
+        self.play(group.animate.apply_matrix(matrix), run_time = 2)
+        self.play(Flash(dot, line_length = 0.15))
+        self.wait()
+
 '''
 class Test(Scene):
     def construct(self):
@@ -31,7 +49,7 @@ class Vec(Scene):
         self.play(ShowCreation(plane, lag_ratio = 0.01), run_time = 1.5)
         self.play(ShowCreation(tanGraph))
         self.play(group.animate.apply_matrix(matrix), run_time = 2)
-'''
+
 class Test2(Scene):
     def construct(self):
         circle = Circle()
@@ -46,4 +64,4 @@ class Test3(Scene):
         group = VGroup(Text(str1).set_color(BLUE), Text(str1).set_color(BLUE))
         group.arrange(buff = SMALL_BUFF, aligned_edge = DOWN)
         self.play(Write(group), run_time = 10)
-
+'''

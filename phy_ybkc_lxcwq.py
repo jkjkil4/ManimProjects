@@ -422,7 +422,7 @@ class YbkcScene(Scene):
         self.wait(0.5)
 
         ybkc = Ybkc().shift(LEFT * 4)
-        ybkc.add_mouse_press_listner(lambda a, b: print(self.mouse_point.get_location()))
+        # ybkc.add_mouse_press_listner(lambda a, b: print(self.mouse_point.get_location()))
         self.play(ybkc.in_animate())
         self.wait(0.5)
         self.play(*[m.animate.shift(RIGHT * 1.5) for m in ybkc.sliders()])
@@ -537,6 +537,7 @@ class YbkcScene(Scene):
                 .scale(0.8).next_to(txtw4, DOWN, aligned_edge = LEFT).set_stroke(GREY_BROWN, 4, background = True)
         txtw4 = movtxt("1")
         txtw5 = movtxt2("1")
+        txtw6 = Text("......").scale(0.8).next_to(txtw5, DOWN, aligned_edge = LEFT).set_stroke(GREY_BROWN, 4, background = True)
         self.play(Write(txtw4), *[FadeOut(m) for m in [txtw1, txtw2, txtw3]])
         self.play(*[m.animate.shift(RIGHT * 0.01 * 2.448) for m in ybkc.sliders()], run_time = 0.3)
         self.play(Write(txtw5))
@@ -550,42 +551,59 @@ class YbkcScene(Scene):
             self.bring_to_back(ybkc)
             self.play(animate_main_sd_grad(i, i, run_time = 0.7))
             self.wait(0.2)
+        self.wait(0.3)
+        self.play(Write(txtw6))
         self.wait(0.8)
         self.play(
-            *[FadeOut(m, run_time = 0.5) for m in [txtw4, txtw5]], ybkc.animate.scale(0.5).shift(LEFT * 14 + DOWN),
+            *[FadeOut(m, run_time = 0.5) for m in [txtw4, txtw5, txtw6]], ybkc.animate.scale(0.5).shift(LEFT * 14 + DOWN),
             FadeIn(txtYbkc2), FadeIn(lineYbkc2)
             )
         self.wait()
         self.play(ybkc.animate.shift(DOWN * 8), rate_func = rush_into)
 
-        # self.play(Group(ybkc, obj).animate.shift(RIGHT * 8.6 + DOWN * 2.4).scale(3.4))
-        # self.play(*[grad.animate.set_stroke(width = 1.2) for grad in [*ybkc.body_grads, *ybkc.sd_grads]], run_time = 0.6)
-        
-        # lineMain = ybkc.body_grads[25].copy().set_color(YELLOW).set_stroke(width = 3)
-        # self.play(GrowArrow(lineMain))
-
-
-        # rect = Rectangle(FRAME_WIDTH, FRAME_HEIGHT)
-        # btn = Button(rect, lambda m: print(self.mouse_point.get_location()))
-        # self.add(btn)
-        # while(True):
-        #     self.wait()
-
-        # ybkc = Ybkc().shift(LEFT * 4)
-        # self.play(ybkc.in_animate())
-        # self.wait(0.5)
-        # self.play(*[mobj.animate.shift(RIGHT * 2) for mobj in ybkc.sliders()])
-        
 class LxcwqScene(Scene):
     def construct(self):
         wm = h.txtwatermark().set_plot_depth(-20000)
         self.add(wm)
 
-        lxcwq = Lxcwq()
+        txtYbkc = Text("游标卡尺").to_corner(UP)
+        lineYbkc = Line(txtYbkc.get_left(), txtYbkc.get_right(), color = RED).next_to(txtYbkc, DOWN, SMALL_BUFF)
+        self.add(txtYbkc, lineYbkc)
+
+        txtLxcwq = Text("螺旋测微器").to_corner(UP)
+        lineLxcwq = Line(txtLxcwq.get_left(), txtLxcwq.get_right(), color = RED)\
+            .next_to(txtLxcwq, DOWN, SMALL_BUFF).shift(LEFT * 10)
+        lxcwq = Lxcwq().scale(1.6).shift(LEFT * 2)
+        lxcwq.rot.set_value(Lxcwq.mm2rot(10))
         self.add(lxcwq)
-        self.wait()
-        self.play(lxcwq.animate.scale(4).shift(LEFT * 4 + DOWN))
-        self.wait()
-        self.play(lxcwq.rot.animate.set_value(Lxcwq.mm2rot(2)), run_time = 8)
-        print(lxcwq.rot.get_value())
-        self.wait()
+        self.update_frame()
+        self.remove(lxcwq)
+        self.play(
+            lineYbkc.animate.shift(RIGHT * 10), lineLxcwq.animate.shift(RIGHT * 10),
+            ReplacementTransform(txtYbkc, txtLxcwq), FadeIn(lxcwq, UP)
+            )
+        self.wait(0.5)
+
+        # lxcwq.add_mouse_press_listner(lambda a, b: print(self.mouse_point.get_location()))
+        explist = [
+            h.Explain(np.array([-3.78, 0.4, 0]), UP, "测砧"),
+            h.Explain(np.array([-2.96, 0.4, 0]), DOWN * 0.8, "测微螺杆"),
+            h.Explain(np.array([-1.98, -1.8, 0]), RIGHT * 1.5, "尺架"),
+            h.Explain(np.array([-1.35, 0.4, 0]), UP, "止动旋钮"),
+            h.Explain(np.array([-0.35, 0.4, 0]), DOWN, "固定刻度"),
+            h.Explain(np.array([0.36, 0.86, 0]), UP, "可动刻度"),
+            h.Explain(np.array([2.34, 0.1, 0]), DOWN, "粗调旋钮"),
+            h.Explain(np.array([3.88, 0.2, 0]), DOWN, "微调旋钮")
+            ]
+        self.play(*[ShowCreation(m) for m in explist])
+        self.wait(3)
+        self.play(*[Uncreate(m) for m in explist])
+
+        # lxcwq = Lxcwq()
+        # self.add(lxcwq)
+        # self.wait(0.5)
+        # self.play(lxcwq.animate.scale(4).shift(LEFT * 4 + DOWN))
+        # self.wait(0.5)
+        # self.play(lxcwq.rot.animate.increment_value(Lxcwq.mm2rot(1)), run_time = 4)
+        # self.wait(0.5)
+        

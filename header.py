@@ -37,6 +37,8 @@ def dictAppend(a, b):
 
 class Explain(VGroup):
     def __init__(self, pos, direction, mtxt, dotcolor = BLUE_E, linecolor = BLUE, **kwargs):
+        if isinstance(mtxt, str):
+            mtxt = self.mtxt(mtxt)
         pos_ = sum([np.array(one) for one in pos]) / len(pos) if isinstance(pos, list) else pos
         lines = \
             [Line(one, pos_ + direction, color = linecolor, buff = 0.02) for one in pos] \
