@@ -377,6 +377,24 @@ class Lxcwq(Group):
             slider_number.add(number)
         self.slider = slider = Group(slider1, slider2, slider_whorl)
 
+        # limit
+        limit1 = VMobject(plot_depth = -90)
+        limit1.set_points((Arc.create_quadratic_bezier_points(TAU) * 0.52 + [2.375, 0, 0]) * scale)
+        limit1.set_fill("#dddddd", opacity = 1).set_stroke(width = 1)
+        limit2 = VMobject(plot_depth = -89)
+        limit2.set_points_as_corners((np.array([
+            np.array([0.4, 0.2, 0]),
+            np.array([1, 0.2, 0]),
+            np.array([1, -0.2, 0]),
+            np.array([0.4, -0.2, 0])
+            ]) + [2.375, 0, 0]) * scale)
+        limit2.set_fill("#dddddd", opacity = 1).set_stroke(width = 1)
+        def jRotate(self, angle, axis = OUT, **kwargs):
+            self.rotate(angle, axis, **kwargs, about_point = limit1.get_center())
+        limit2.jRotate = jRotate
+        limit2.jRotate(limit2, -PI / 4)
+        limit = Group(limit1, limit2, plot_depth = -90)
+
         bar.add_updater(lambda mobj, dt: mobj.next_to(slider, LEFT, buff = 0))
         slider.add_updater(
             lambda mobj, dt: mobj.next_to([
@@ -390,6 +408,7 @@ class Lxcwq(Group):
             backbody, backbody_line, backbody_grad, backbody_grad2, backbody_number,
             body, surf, fixer, 
             slider, slider_grad, slider_number,
+            limit,
             **kwargs
             )
 
