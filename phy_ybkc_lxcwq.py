@@ -189,7 +189,7 @@ class Lxcwq(Group):
         self.fixer_rot = ValueTracker(0)
 
         # block
-        block = VMobject(plot_depth = -101)
+        self.block = block = VMobject(plot_depth = -101)
         block.set_points_as_corners(np.array([
             np.array([-1.5, 0.4, 0]),
             np.array([-1.4, 0.4, 0]),
@@ -398,19 +398,26 @@ class Lxcwq(Group):
         bar.add_updater(lambda mobj, dt: mobj.next_to(slider, LEFT, buff = 0))
         slider.add_updater(
             lambda mobj, dt: mobj.next_to([
-                self.backbody_grad[0].get_x() + self.rot2mm(self.rot.get_value()) * (backbody_grad[1].get_x() - backbody_grad[0].get_x()), 
+                self.backbody_grad[0].get_x() + self.rot2mm(self.rot.get_value()) * self.mmlen() / 2, 
                 backbody_line.get_y(), 0
                 ], buff = 0))
         fixer.add_updater(lambda mobj, dt: mobj.next_to(slider, buff = 0))
+
+        self.txt1 = txt1 = Text("0.01mm", color = "#7a7a7a", font = "Noto Sans Thin").scale(0.8 * scale)
+        self.txt2 = txt2 = Text("0 - 25mm", color = "#7a7a7a", font = "Noto Sans Thin").scale(0.8 * scale)
+        Group(txt1, txt2).arrange(DOWN, buff = MED_SMALL_BUFF * scale).move_to([0, -3.65 * scale, 0])
 
         super().__init__(
             block, bar, 
             backbody, backbody_line, backbody_grad, backbody_grad2, backbody_number,
             body, surf, fixer, 
             slider, slider_grad, slider_number,
-            limit,
+            limit, txt1, txt2,
             **kwargs
             )
+    
+    def mmlen(self):
+        return self.backbody_grad[2].get_x() - self.backbody_grad[0].get_x()
 
 class YbkcScene(Scene):
     def construct(self):
@@ -617,6 +624,18 @@ class LxcwqScene(Scene):
         self.play(*[ShowCreation(m) for m in explist])
         self.wait(3)
         self.play(*[Uncreate(m) for m in explist])
+
+        txt1 = Text("由于螺旋测微器精度0.01达到千分位(相对于cm而言)", t2c = { "[2:7]": BLUE, "0.01": GOLD, "千分位": GOLD, "cm": GOLD }).scale(0.8)
+        txt2 = Text("因此也被称为千分尺", t2c = { "千分尺": BLUE }).scale(0.8)
+        g1_2 = Group(txt1, txt2).arrange(DOWN).to_corner(DOWN)
+        self.play(Write(txt1), run_time = 2)
+        self.play(Write(txt2[:6]))
+        self.play(DrawBorderThenFill(txt2[6:]))
+        self.wait()
+
+        obj = Rectangle(0.1, 2).set_fill(YELLOW_D, opacity = 1).set_stroke(WHITE, 1)\
+            .next_to(lxcwq.block, buff = 0).shift(UP *  0.6)
+        self.play(FadeOut(g1_2, DOWN), FadeIn(obj, DOWN))
 
         # lxcwq = Lxcwq()
         # self.add(lxcwq)
