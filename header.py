@@ -15,7 +15,7 @@ def eqRange(fromValue, toValue, step = 1):
         value += step
 
 def getPos(mobject):
-    return [mobject.get_x(), mobject.get_y(), mobject.get_z()]
+    return np.array([mobject.get_x(), mobject.get_y(), mobject.get_z()])
     
 def getLineCenter(line):    # 用于得到线段中点
     return (line.get_start() + line.get_end()) / 2

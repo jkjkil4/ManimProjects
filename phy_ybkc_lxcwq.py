@@ -211,26 +211,27 @@ class Lxcwq(Group):
         bar.set_fill("#aaaaaa", opacity = 1).set_stroke(width = 1)
 
         # backbody
-        backbody = VMobject(plot_depth = -101)
-        backbody.set_points_as_corners(np.array([
+        backbody1 = VMobject(plot_depth = -101)
+        backbody1.set_points_as_corners(np.array([
             np.array([3, 0.8, 0]),
             np.array([6, 0.8, 0]),
             np.array([6, -0.8, 0]),
             np.array([3, -0.8, 0])
             ]) * scale)
-        backbody.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
-        backbody_line = Line([3 * scale, 0, 0], [6 * scale, 0, 0], color = GREY_D, plot_depth = -100).set_stroke(width = 0.4)
+        backbody1.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
+        backbody_line = Line([3 * scale, 0, 0], [6 * scale, 0, 0], color = GREY_D, plot_depth = -100).set_stroke(width = 0.8)
         self.backbody_grad = backbody_grad = Group(plot_depth = -100)
         self.backbody_grad2 = backbody_grad2 = Group(plot_depth = -100)
         self.backbody_number = backbody_number = Group(plot_depth = -100)
         for i in range(0, 20):
             x = 3.45 + 0.1 * i
             y = 0.36 if i % 5 == 0 else 0.22
-            backbody_grad.add(Line(np.array([x, 0.05, 0]) * scale, np.array([x, y, 0]) * scale, color = GREY_D).set_stroke(width = 0.4))
-            backbody_grad2.add(Line(np.array([x + 0.05, -0.05, 0]) * scale, np.array([x + 0.05, -0.25, 0]) * scale, color = GREY_D).set_stroke(width = 0.35))
+            backbody_grad.add(Line(np.array([x, 0.05, 0]) * scale, np.array([x, y, 0]) * scale, color = GREY_D).set_stroke(width = 0.8))
+            backbody_grad2.add(Line(np.array([x + 0.05, -0.05, 0]) * scale, np.array([x + 0.05, -0.25, 0]) * scale, color = GREY_D).set_stroke(width = 0.8))
             if i % 5 == 0:
                 number = Text(str(i), color = "#7a7a7a", font = "Noto Sans Thin").scale(0.2).next_to(backbody_grad[i], UP, 0.02)
                 backbody_number.add(number)
+        backbody = Group(backbody1, backbody_line, backbody_grad, backbody_grad2, backbody_number, plot_depth = -101)
 
         # body
         body = VMobject(plot_depth = -100)
@@ -311,14 +312,14 @@ class Lxcwq(Group):
         fixer_whorl = Group(plot_depth = -90)
         def fixer_whorl_updater(i):
             return lambda mobj: mobj.update_whorl(
-                self.rot.get_value() - m.tau / 10 * i,
+                self.rot.get_value() + self.fixer_rot.get_value() - m.tau / 10 * i,
                 *fixer3.get_center()[0:2], fixer3.get_width() / 2.05, fixer3.get_height() / 2.03
                 )
         for i in range(0, 10):
             whorl = self.Whorl(color = rgb_to_color(color_to_rgb("#c0c0ca") * 0.96), plot_depth = -90)
             whorl.add_updater(fixer_whorl_updater(i))
             fixer_whorl.add(whorl)
-        fixer = Group(fixer1, fixer2, fixer3, fixer_whorl)
+        self.fixer = fixer = Group(fixer1, fixer2, fixer3, fixer_whorl, plot_depth = -100)
 
         # slider
         slider1 = VMobject(plot_depth = -99)
@@ -375,7 +376,7 @@ class Lxcwq(Group):
             number = self.GradNumber(str(i), color = "#7a7a7a", font = "Noto Sans Thin", plot_depth = -90).scale(0.2)
             number.add_updater(slider_number_updater(i))
             slider_number.add(number)
-        self.slider = slider = Group(slider1, slider2, slider_whorl)
+        self.slider = slider = Group(slider1, slider2, slider_whorl, slider_grad, slider_number, plot_depth = -99)
 
         # limit
         limit1 = VMobject(plot_depth = -90)
@@ -391,14 +392,16 @@ class Lxcwq(Group):
         limit2.set_fill("#dddddd", opacity = 1).set_stroke(width = 1)
         def jRotate(self, angle, axis = OUT, **kwargs):
             self.rotate(angle, axis, **kwargs, about_point = limit1.get_center())
-        limit2.jRotate = jRotate
+        def jRotateAnim(self, angle, axis = OUT, **kwargs):
+            return Rotating(self, angle, axis, **kwargs, about_point = limit1.get_center())
+        limit2.jRotate, limit2.jRotateAnim = jRotate, jRotateAnim
         limit2.jRotate(limit2, -PI / 4)
-        limit = Group(limit1, limit2, plot_depth = -90)
+        self.limit = limit = Group(limit1, limit2, plot_depth = -90)
 
         bar.add_updater(lambda mobj, dt: mobj.next_to(slider, LEFT, buff = 0))
         slider.add_updater(
             lambda mobj, dt: mobj.next_to([
-                self.backbody_grad[0].get_x() + self.rot2mm(self.rot.get_value()) * self.mmlen() / 2, 
+                self.backbody_grad[0].get_x() + self.rot2mm(self.rot.get_value()) * self.mmlen(), 
                 backbody_line.get_y(), 0
                 ], buff = 0))
         fixer.add_updater(lambda mobj, dt: mobj.next_to(slider, buff = 0))
@@ -408,16 +411,14 @@ class Lxcwq(Group):
         Group(txt1, txt2).arrange(DOWN, buff = MED_SMALL_BUFF * scale).move_to([0, -3.65 * scale, 0])
 
         super().__init__(
-            block, bar, 
-            backbody, backbody_line, backbody_grad, backbody_grad2, backbody_number,
-            body, surf, fixer, 
-            slider, slider_grad, slider_number,
+            block, bar, backbody,
+            body, surf, fixer, slider,
             limit, txt1, txt2,
             **kwargs
             )
     
     def mmlen(self):
-        return self.backbody_grad[2].get_x() - self.backbody_grad[0].get_x()
+        return self.backbody_grad[1].get_x() - self.backbody_grad[0].get_x()
 
 class YbkcScene(Scene):
     def construct(self):
@@ -610,7 +611,6 @@ class LxcwqScene(Scene):
             )
         self.wait(0.5)
 
-        # lxcwq.add_mouse_press_listner(lambda a, b: print(self.mouse_point.get_location()))
         explist = [
             h.Explain(np.array([-3.78, 0.4, 0]), UP, "测砧"),
             h.Explain(np.array([-2.96, 0.4, 0]), DOWN * 0.8, "测微螺杆"),
@@ -625,7 +625,7 @@ class LxcwqScene(Scene):
         self.wait(3)
         self.play(*[Uncreate(m) for m in explist])
 
-        txt1 = Text("由于螺旋测微器精度0.01达到千分位(相对于cm而言)", t2c = { "[2:7]": BLUE, "0.01": GOLD, "千分位": GOLD, "cm": GOLD }).scale(0.8)
+        txt1 = Text("由于螺旋测微器可测量至毫米千分位", t2c = { "[2:7]": BLUE, "0.01": GOLD, "千分位": GOLD, "cm": GOLD }).scale(0.8)
         txt2 = Text("因此也被称为千分尺", t2c = { "千分尺": BLUE }).scale(0.8)
         g1_2 = Group(txt1, txt2).arrange(DOWN).to_corner(DOWN)
         self.play(Write(txt1), run_time = 2)
@@ -633,15 +633,44 @@ class LxcwqScene(Scene):
         self.play(DrawBorderThenFill(txt2[6:]))
         self.wait()
 
-        obj = Rectangle(0.1, 2).set_fill(YELLOW_D, opacity = 1).set_stroke(WHITE, 1)\
-            .next_to(lxcwq.block, buff = 0).shift(UP *  0.6)
-        self.play(FadeOut(g1_2, DOWN), FadeIn(obj, DOWN))
+        obj = Rectangle(0.17, 2).set_fill(YELLOW_D, opacity = 1).set_stroke(WHITE, 1)\
+            .next_to(lxcwq.block, buff = 0).shift(UP * 0.6)
+        txtLxcwqHow = Text("测量", color = BLUE_A).scale(0.8).next_to(txtLxcwq, RIGHT, aligned_edge = DOWN)
+        txtL = Text("转动粗调旋钮", t2c = { "粗调旋钮": BLUE }).scale(0.8).to_corner(DOWN)
+        txtM = Text("接近物体时，转动微调旋钮", t2c = { "接近": GOLD, "微调旋钮": BLUE }).scale(0.8)
+        txtNotice = Text("(避免压力过大损坏螺旋测微器)", color = GREY).scale(0.6)
+        Group(txtM, txtNotice).arrange(DOWN).to_corner(DOWN)
+        offsetmm = Lxcwq.mm2rot((obj.get_right()[0] - lxcwq.bar.get_left()[0]) / lxcwq.mmlen())
+        self.play(FadeOut(g1_2, DOWN), FadeIn(obj, DOWN), FadeIn(txtLxcwqHow, DOWN))
+        self.play(DrawBorderThenFill(txtL))
+        self.play(FocusOn(lxcwq.slider[1]))
+        self.play(lxcwq.rot.animate.increment_value(offsetmm * 0.8), run_time = 2)
+        self.wait(0.5)
+        txtM.save_state()
+        txtM.to_corner(DOWN)
+        self.play(ReplacementTransform(txtL, txtM))
+        self.play(txtM.animate.restore(), FadeIn(txtNotice, UP), run_time = 0.8)
+        self.play(FocusOn(lxcwq.fixer[1]))
+        self.play(lxcwq.rot.animate.increment_value(offsetmm * 0.2), rate_func = rush_into)
+        self.play(lxcwq.fixer_rot.animate.increment_value(-2.2), rate_func = rush_from, run_time = 0.6)
+        self.wait()
+        self.play(FadeOut(txtM, DOWN), FadeOut(txtNotice, DOWN))
 
-        # lxcwq = Lxcwq()
-        # self.add(lxcwq)
-        # self.wait(0.5)
-        # self.play(lxcwq.animate.scale(4).shift(LEFT * 4 + DOWN))
-        # self.wait(0.5)
-        # self.play(lxcwq.rot.animate.increment_value(Lxcwq.mm2rot(1)), run_time = 4)
-        # self.wait(0.5)
+        arrowLmt = Arrow([-0.6, 0, 0], [-1.53, 0, 0], buff = 0).set_color(YELLOW)
+        txtLmt = Text("扣上止动旋钮以锁定位置", t2c = { "扣上": GOLD, "止动旋钮": BLUE })\
+            .scale(0.8).next_to(arrowLmt, DOWN, aligned_edge = LEFT).set_stroke(GREY_BROWN, 4, background = True)
+        self.play(Write(txtLmt))
+        self.play(
+            GrowArrow(arrowLmt, rate_func = rush_from, run_time = 1), 
+            lxcwq.limit[1].jRotateAnim(lxcwq.limit, -PI / 2, rate_func = linear, run_time = 0.8)
+            )
+        self.wait(0.8)
+        self.play(FadeOut(arrowLmt), FadeOut(txtLmt))
+
+        self.play(Group(lxcwq, obj).animate.scale(3.8).shift(DOWN * 1.8 + LEFT * 1.5))
+        # self.play(*[m.animate.set_stroke(width = 1.2) for m in [*lxcwq.backbody_grad, *lxcwq.backbody_grad2, *lxcwq.slider_grad]], run_time = 0.6)
+
+        # lxcwq.add_mouse_press_listner(lambda a, b: print(self.mouse_point.get_location()))
+        # while(True):
+        #     self.wait(10)
         
