@@ -219,7 +219,7 @@ class Lxcwq(Group):
             np.array([3, -0.8, 0])
             ]) * scale)
         backbody1.set_fill("#bbbbbb", opacity = 1).set_stroke(width = 1)
-        backbody_line = Line([3 * scale, 0, 0], [6 * scale, 0, 0], color = GREY_D, plot_depth = -100).set_stroke(width = 0.8)
+        self.backbody_line = backbody_line = Line([3 * scale, 0, 0], [6 * scale, 0, 0], color = GREY_D, plot_depth = -100).set_stroke(width = 0.8)
         self.backbody_grad = backbody_grad = Group(plot_depth = -100)
         self.backbody_grad2 = backbody_grad2 = Group(plot_depth = -100)
         self.backbody_number = backbody_number = Group(plot_depth = -100)
@@ -487,9 +487,9 @@ class YbkcScene(Scene):
 
         txtMain = Text("首先读取主尺刻度", t2c = { "主尺": BLUE }, plot_depth = 10000)\
             .scale(0.8).to_edge(UL, LARGE_BUFF).shift(DOWN * 0.8).set_stroke(GREY_BROWN, 4, background = True)
-        txtDgtMain = Text("2.5 cm", color = YELLOW).next_to(ybkc.body_grads[25], UP, SMALL_BUFF)\
+        txtDgtMain = Text("2.7 cm", color = YELLOW).next_to(ybkc.body_grads[27], UP, SMALL_BUFF)\
             .set_stroke(GREY_BROWN, 4, background = True)
-        txtDgtMain2 = Text("25 mm", color = YELLOW).next_to(ybkc.body_grads[25], UP, SMALL_BUFF)\
+        txtDgtMain2 = Text("27 mm", color = YELLOW).next_to(ybkc.body_grads[27], UP, SMALL_BUFF)\
             .set_stroke(GREY_BROWN, 4, background = True)
         txtSlider = Text("接着读取游标尺刻度与主尺刻度重合处", t2c = { "游标尺": BLUE, "主尺": BLUE, "重合处": GOLD }, plot_depth = 10000)\
             .scale(0.8).next_to(txtMain, DOWN, aligned_edge = LEFT).set_stroke(GREY_BROWN, 4, background = True)
@@ -500,8 +500,8 @@ class YbkcScene(Scene):
         txtPrec = Text("0.1 mm", color = YELLOW).set_stroke(GREY_BROWN, 4, background = True).next_to(txtMul)
         txtGetResult = Text("得到最终结果", plot_depth = 10000).scale(0.8)\
             .next_to(txtSlider, DOWN, aligned_edge = LEFT).set_stroke(GREY_BROWN, 4, background = True)
-        txtResult = Text("= 25.5 mm", color = YELLOW).set_stroke(GREY_BROWN, 4, background = True)
-        lineMain = ybkc.body_grads[25].copy().set_color(YELLOW).set_stroke(width = 3)
+        txtResult = Text("= 27.5 mm", color = YELLOW).set_stroke(GREY_BROWN, 4, background = True)
+        lineMain = ybkc.body_grads[27].copy().set_color(YELLOW).set_stroke(width = 3)
         lineSlider = Line(ybkc.body_grads[32].get_end(), ybkc.sd_grads[5].get_end()).set_color(YELLOW).set_stroke(width = 3)
         self.play(GrowArrow(lineMain), DrawBorderThenFill(txtMain))
         self.wait(0.5)
@@ -588,6 +588,14 @@ class YbkcScene(Scene):
         self.wait()
         self.play(ybkc.animate.shift(DOWN * 8), rate_func = rush_into)
 
+class LxcwqSubScene(Scene):
+    def construct(self):
+        lxcwq = Lxcwq().scale(3.6).shift(UP * 2 + RIGHT * 3)
+        self.add(lxcwq)
+        self.wait(0.5)
+        self.play(ShowCreationThenFadeAround(lxcwq.txt1))
+        self.wait(0.5)
+
 class LxcwqScene(Scene):
     def construct(self):
         wm = h.txtwatermark().set_plot_depth(-20000)
@@ -635,13 +643,13 @@ class LxcwqScene(Scene):
 
         obj = Rectangle(0.17, 2).set_fill(YELLOW_D, opacity = 1).set_stroke(WHITE, 1)\
             .next_to(lxcwq.block, buff = 0).shift(UP * 0.6)
-        txtLxcwqHow = Text("测量", color = BLUE_A).scale(0.8).next_to(txtLxcwq, RIGHT, aligned_edge = DOWN)
+        txtHow = Text("测量", color = BLUE_A).scale(0.8).next_to(txtLxcwq, RIGHT, aligned_edge = DOWN)
         txtL = Text("转动粗调旋钮", t2c = { "粗调旋钮": BLUE }).scale(0.8).to_corner(DOWN)
         txtM = Text("接近物体时，转动微调旋钮", t2c = { "接近": GOLD, "微调旋钮": BLUE }).scale(0.8)
         txtNotice = Text("(避免压力过大损坏螺旋测微器)", color = GREY).scale(0.6)
         Group(txtM, txtNotice).arrange(DOWN).to_corner(DOWN)
         offsetmm = Lxcwq.mm2rot((obj.get_right()[0] - lxcwq.bar.get_left()[0]) / lxcwq.mmlen())
-        self.play(FadeOut(g1_2, DOWN), FadeIn(obj, DOWN), FadeIn(txtLxcwqHow, DOWN))
+        self.play(FadeOut(g1_2, DOWN), FadeIn(obj, DOWN), FadeIn(txtHow, DOWN))
         self.play(DrawBorderThenFill(txtL))
         self.play(FocusOn(lxcwq.slider[1]))
         self.play(lxcwq.rot.animate.increment_value(offsetmm * 0.8), run_time = 2)
@@ -669,6 +677,116 @@ class LxcwqScene(Scene):
 
         self.play(Group(lxcwq, obj).animate.scale(3.8).shift(DOWN * 1.8 + LEFT * 1.5))
         # self.play(*[m.animate.set_stroke(width = 1.2) for m in [*lxcwq.backbody_grad, *lxcwq.backbody_grad2, *lxcwq.slider_grad]], run_time = 0.6)
+
+        txtH1 = Text("首先读取固定刻度", t2c = { "固定刻度": BLUE })\
+            .scale(0.8).to_edge(UR, 1.2).shift(DOWN * 0.6).set_stroke(GREY_BROWN, 4, background = True)
+        self.play(Write(txtH1))
+        self.wait(0.5)
+
+        def gradArrow(index):
+            grad: Line = lxcwq.backbody_grad[int(index / 2)] if index % 2 == 0 else lxcwq.backbody_grad2[int((index - 1) / 2)]
+            y = grad.get_bottom()[1]
+            return Arrow([grad.get_x(), y - 1, 0], [grad.get_x(), y, 0], buff = 0)\
+                .set_fill(YELLOW).set_stroke(GREY_BROWN, 4, background = True)
+        arrow = gradArrow(0)
+        def gradNum(index):
+            mobj = Text(str(int(index / 2) if index % 2 == 0 else index / 2) + " mm", color = YELLOW).set_stroke(GREY_BROWN, 4, background = True)
+            mobj.add_updater(lambda m: m.next_to(arrow, DOWN))
+            return mobj
+        num = gradNum(0)
+        self.play(Write(num), Write(arrow))
+        self.wait(0.5)
+        for i in range(0, 5, 2):
+            self.play(Transform(arrow, gradArrow(i)), Transform(num, gradNum(i)), run_time = 0.8)
+            self.wait(0.5)
+        self.play(Transform(arrow, gradArrow(5)), Transform(num, gradNum(5)))
+        num.clear_updaters()
+        self.wait(0.8)
+        self.play(FadeOut(arrow), num.animate.shift(DOWN))
+
+        txtH2 = Text("再读取可动刻度(估读)", t2c = { "可动刻度": BLUE, "估读": GOLD })\
+            .scale(0.8).next_to(txtH1, DOWN, aligned_edge = RIGHT).set_stroke(GREY_BROWN, 4, background = True)
+        self.play(Write(txtH2))
+        self.wait(0.5)
+        
+        def sgradArrow(index):
+            grad: Line = lxcwq.slider_grad[index]
+            x = grad.get_left()[0]
+            return Arrow([x - 1, grad.get_y(), 0], [x, grad.get_y(), 0], buff = 0)\
+                .set_fill(YELLOW).set_stroke(GREY_BROWN, 4, background = True)
+        sarrow = sgradArrow(15)
+        def sgradNum(index):
+            mobj = Text(str(index) if isinstance(index, int) else index, color = YELLOW)\
+                .set_stroke(GREY_BROWN, 4, background = True)
+            mobj.add_updater(lambda m: m.next_to(sarrow, LEFT))
+            return mobj
+        snum = sgradNum(15)
+        self.play(Write(sarrow), Write(snum))
+        self.wait(0.5)
+        self.play(Transform(sarrow, sgradArrow(16)), Transform(snum, sgradNum(16)))
+        self.wait(0.5)
+        snum_target = sgradNum("(估读) 15.6")
+        snum_target.set_color_by_t2c({ "估读": GOLD })
+        snum_target.set_stroke(GREY_BROWN, 4, background = True)
+        self.play(
+            sarrow.animate.set_y(lxcwq.backbody_line.get_y()), 
+            Transform(snum, snum_target)
+            )
+        self.wait(2)    # Insert LxcwqSubScene
+
+        txtSnumCpy = snum[5:].copy()
+        txtSum = Text("+", color = YELLOW).set_stroke(GREY_BROWN, 4, background = True).next_to(num)
+        txtMul = Text("x", color = YELLOW).set_stroke(GREY_BROWN, 4, background = True).next_to(snum)
+        txtPrec = Text("0.01 mm", color = YELLOW).set_stroke(GREY_BROWN, 4, background = True).next_to(txtMul)
+        txtResult = Text("= 2.656 mm", color = YELLOW).set_stroke(GREY_BROWN, 4, background = True)
+        txtH3 = Text("得到最终结果").scale(0.8)\
+            .next_to(txtH2, DOWN, aligned_edge = RIGHT).set_stroke(GREY_BROWN, 4, background = True)
+        self.play(FadeOut(sarrow), DrawBorderThenFill(txtMul), Write(txtPrec))
+        self.wait()
+        self.play(DrawBorderThenFill(txtH3))
+        self.play(FadeOut(snum), Group(txtSnumCpy, txtMul, txtPrec).animate.next_to(txtSum), DrawBorderThenFill(txtSum))
+        self.wait(0.5)
+        txtResult.next_to(txtPrec)
+        self.play(Write(txtResult))
+        self.play(ShowCreationThenFadeAround(txtResult[2:]))
+        self.wait(1.5)
+
+        txtWhy = Text("原理", color = BLUE_A).scale(0.8).move_to(txtHow)
+        self.play(
+            *[FadeOut(m) for m in [num, txtSum, txtSnumCpy, txtMul, txtPrec, txtResult, txtH1, txtH2, txtH3]],
+            FadeOut(txtHow, DOWN), FadeIn(txtWhy, DOWN),
+            lxcwq.limit[1].jRotateAnim(lxcwq.limit, PI / 2),
+            run_time = 1)
+        self.play(lxcwq.rot.animate.set_value(Lxcwq.mm2rot(1)), run_time = 2.5)
+
+        txtW1 = Text("可动刻度每转一圈，固定刻度就会前进/后退0.5mm", t2c = { "可动刻度": BLUE, "一圈": GOLD, "固定刻度": BLUE, "0.5mm": GOLD })\
+            .scale(0.8).to_edge(UR, 1.2).shift(DOWN * 0.6).set_stroke(GREY_BROWN, 4, background = True)
+        txtW2 = Text("同时，可动刻度被分成了50个刻度", t2c = { "可动刻度": BLUE, "50": GOLD })\
+            .scale(0.8).next_to(txtW1, DOWN, aligned_edge = RIGHT).set_stroke(GREY_BROWN, 4, background = True)
+        txtW3 = Text("也就是每个刻度对应")\
+            .scale(0.8).next_to(txtW2, DOWN, aligned_edge = RIGHT).set_stroke(GREY_BROWN, 4, background = True)
+        txtW4_1 = Tex("\\frac{0.5mm}{50}", color = GOLD)\
+            .scale(0.8).next_to(txtW3, DOWN).set_stroke(GREY_BROWN, 4, background = True)
+        txtW4_2 = Tex("0.01mm", color = GOLD)\
+            .scale(0.8).next_to(txtW3, DOWN).set_stroke(GREY_BROWN, 4, background = True)
+        txtW5 = Text("这样就可以通过读取固定刻度和可动刻度来测量长度", t2c = { "固定刻度": BLUE, "可动刻度": BLUE, "测量长度": GOLD })\
+            .scale(0.8).next_to(txtW4_2, DOWN).to_corner(RIGHT, 1.2).set_stroke(GREY_BROWN, 4, background = True)
+        self.play(Write(txtW1))
+        self.play(lxcwq.rot.animate.increment_value(Lxcwq.mm2rot(-0.5)), run_time = 1.5)
+        self.wait(0.5)
+        self.play(Write(txtW2))
+        self.play(Succession(*[m.animate.set_color(YELLOW) for m in lxcwq.slider_grad if m.get_opacity() != 0], lag_ratio = 0.01))
+        self.wait(0.5)
+        self.play(Succession(*[m.animate.set_color(GREY_D) for m in lxcwq.slider_grad if m.get_opacity() != 0], lag_ratio = 0.01))
+        self.wait(0.5)
+        self.play(Write(txtW3))
+        self.wait(0.5)
+        self.play(DrawBorderThenFill(txtW4_1))
+        self.wait(0.5)
+        self.play(Transform(txtW4_1, txtW4_2))
+        self.wait()
+        self.play(Write(txtW5))
+        self.wait(2)
 
         # lxcwq.add_mouse_press_listner(lambda a, b: print(self.mouse_point.get_location()))
         # while(True):
