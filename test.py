@@ -3,23 +3,34 @@ sys.path.append(".")
 from manimlib import *
 import header
 
-class NumberPlaneScene(Scene):
+class Test(Scene):
     def construct(self):
-        nump = NumberPlane((-12, 12), (-12, 12))
-        sqrGraph = nump.get_graph(lambda x: x ** 2, color = GREEN)
-        derGraph = nump.get_graph(lambda x: 2 * x - 1, color = ORANGE)
-        dot = Dot([1, 1, 0], color = ORANGE)
-        matrix = [[1, 0.5], [0, 1]]
-        group = Group(nump, sqrGraph, derGraph, dot)
-        self.play(ShowCreation(nump, lag_ratio = 0.01), run_time = 1.5)
-        self.play(ShowCreation(sqrGraph))
-        self.wait(0.5)
-        self.play(Write(dot), FocusOn(dot.get_center()))
-        self.play(ShowCreation(derGraph))
-        self.wait()
-        self.play(group.animate.apply_matrix(matrix), run_time = 2)
-        self.play(Flash(dot, line_length = 0.15))
-        self.wait()
+        txt1 = Text("txt1").set_opacity(0)
+        txt1.generate_target()
+        txt1.target.set_opacity(1)
+        txt2 = Text("txt2").next_to(txt1, DOWN).set_opacity(0)
+        txt2.generate_target()
+        txt2.target.set_opacity(1)
+        self.play(Succession(MoveToTarget(txt1), MoveToTarget(txt2)))
+
+
+# class NumberPlaneScene(Scene):
+#     def construct(self):
+#         nump = NumberPlane((-12, 12), (-12, 12))
+#         sqrGraph = nump.get_graph(lambda x: x ** 2, color = GREEN)
+#         derGraph = nump.get_graph(lambda x: 2 * x - 1, color = ORANGE)
+#         dot = Dot([1, 1, 0], color = ORANGE)
+#         matrix = [[1, 0.5], [0, 1]]
+#         group = Group(nump, sqrGraph, derGraph, dot)
+#         self.play(ShowCreation(nump, lag_ratio = 0.01), run_time = 1.5)
+#         self.play(ShowCreation(sqrGraph))
+#         self.wait(0.5)
+#         self.play(Write(dot), FocusOn(dot.get_center()))
+#         self.play(ShowCreation(derGraph))
+#         self.wait()
+#         self.play(group.animate.apply_matrix(matrix), run_time = 2)
+#         self.play(Flash(dot, line_length = 0.15))
+#         self.wait()
 
 '''
 class Test(Scene):
