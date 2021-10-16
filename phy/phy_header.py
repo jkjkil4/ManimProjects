@@ -53,7 +53,7 @@ class PhyArrowEquip(VGroup):
         self, txt: str = "", 
         arc_radius = 1, arc_rad = PI / 2, grad_half_len = 0.1,
         grad_zero_offset = 0, grad_up_num_step = None, grad_down_num_step = None,
-        grad_num_buff = 0.05
+        grad_up_range = (-2, 2), grad_down_range = (-2, 2), grad_num_buff = 0.05
         ):
         # 中间文字
         self.txt = self.create_txt(txt).move_to([0, arc_radius / 2, 0])
@@ -83,7 +83,7 @@ class PhyArrowEquip(VGroup):
                 result = result[:len(result) - 2]
             return result
         if grad_up_num_step != None:
-            for i in range(-2, 3):
+            for i in range(grad_up_range[0], grad_up_range[1] + 1):
                 rot = numrot(i)
                 direction = RIGHT * np.cos(rot) + UP * np.sin(rot)
                 text = numstr(grad_up_num_step * (i - grad_zero_offset))
@@ -92,7 +92,7 @@ class PhyArrowEquip(VGroup):
                 num.rotate(rot - PI / 2)
                 self.nums.add(num)
         if grad_down_num_step != None:
-            for i in range(-2, 3):
+            for i in range(grad_down_range[0], grad_down_range[1] + 1):
                 rot = numrot(i)
                 direction = RIGHT * np.cos(rot) + UP * np.sin(rot)
                 text = numstr(grad_down_num_step * (i - grad_zero_offset))
@@ -123,7 +123,7 @@ class PhyArrowEquip(VGroup):
 class PhyMaterialEquip(PhyArrowEquip):
     def __init__(
         self, txt: str, wire_base_color: tuple = (), wire_base_txt: tuple = (),
-        wire_base_radius = 0.06, bottom_rect_height = 0.4, **kwargs
+        wire_base_radius = 0.06, bottom_rect_height = 0.4, srdrect_buff = SMALL_BUFF, **kwargs
         ):
         if len(wire_base_color) < len(wire_base_txt):
             raise Exception("len(wire_base_color) 必须大于或等于 len(wire_base_txt)")
@@ -131,7 +131,7 @@ class PhyMaterialEquip(PhyArrowEquip):
         super().__init__(txt, **kwargs)
 
         # 外框
-        self.surrounding_rect = SurroundingRectangle(self).set_stroke(WHITE)
+        self.surrounding_rect = SurroundingRectangle(self, buff = srdrect_buff).set_stroke(WHITE)
         self.bottom_rect = Rectangle(self.surrounding_rect.get_width(), bottom_rect_height)\
             .next_to(self.surrounding_rect, DOWN, 0).set_fill(GREY_B, opacity = 1)
 
@@ -152,11 +152,34 @@ class PhyMaterialEquip(PhyArrowEquip):
 
         self.add(self.surrounding_rect, self.bottom_rect, self.wire_base, self.wire_base_txt)
 
+class PhyEquipR(VMobject):
+    def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
+        super().__init__(**kwargs)
+
+        xy = np.array([width / 2, height / 2, 0])
+        self.set_points_as_corners([UL * xy, UR * xy, DR * xy, DL * xy, UL * xy])
+        xy -= [buff, buff, 0]
+        self.add_points_as_corners([UL * xy, DL * xy, DR * xy, UR * xy, UL * xy])
+        self.set_stroke(width = 0).set_fill(opacity = 1)
+
+class PhyElecLine(VMobject):
+    def __init__(self, start = LEFT, end = RIGHT, width = 0.1, **kwargs):
+        super().__init__(**kwargs)
+
+        width /= 2
+        rot = PI / 2 + np.arctan2(end[1] - start[1], end[0] - start[0])
+        delta = [width * np.cos(rot), width * np.sin(rot), 0]
+        self.set_points_as_corners([start + delta, end + delta, end - delta, start - delta, start + delta])
+        self.set_stroke(width = 0).set_fill(opacity = 1)
+
+
 class PhyHeaderTestScene(Scene):
     def construct(self):
-        mobj = PhyMaterialEquip("A", wire_base_color = (BLACK, "#ff4444", "#ff4444"), wire_base_txt = ("|-|", "0.6", "3"), grad_zero_offset = -1, grad_up_num_step = 1, grad_down_num_step = 0.2).scale(2)
-        self.add(mobj)
-        self.wait(0.5)
-        self.play(mobj.arrow_offset.animate.increment_value(22), run_time = 1.5)
-        self.wait(0.5)
+        self.add(PhyElecLine(UP, DOWN).shift(LEFT * 3), PhyEquipR(), PhyEquipTxt("G").shift(RIGHT * 3).insert_n_curves(8))
+
+        # mobj = PhyMaterialEquip("A", wire_base_color = (BLACK, "#ff4444", "#ff4444"), wire_base_txt = ("|-|", "0.6", "3"), grad_zero_offset = -1, grad_up_num_step = 1, grad_down_num_step = 0.2).scale(2)
+        # self.add(mobj)
+        # self.wait(0.5)
+        # self.play(mobj.arrow_offset.animate.increment_value(22), run_time = 1.5)
+        # self.wait(0.5)
         
