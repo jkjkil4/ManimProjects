@@ -35,7 +35,7 @@ class PhyRefitOpeningScene(Scene):
         self.play(FadeIn(phyV, UP), Write(txt2), run_time = 0.8)
         self.play(*[FadeIn(m, UR / 2) for m in [phyGTxt, phyATxt, phyVTxt]])
         self.play(*[GrowArrow(m) for m in [phyGArrow, phyAArrow, phyVArrow]])
-        self.play(*[ReplacementTransform(txt2[3:5].copy(), tex) for tex in [phyGTex, phyATex, phyVTex]])
+        self.play(*[FadeTransform(txt2[3:5].copy(), tex) for tex in [phyGTex, phyATex, phyVTex]])
         self.wait(0.5)
         self.play(phyGroup.animate.set_opacity(0.2))
 
@@ -127,12 +127,53 @@ class PhyRefitScene(Scene):
             Tex("\\rightarrow").scale(0.8),
             VGroup(PhyEquipTxt("A").scale(0.2), Text("电流表", color = BLUE).scale(0.8)).arrange(DOWN, buff = SMALL_BUFF)
             ).arrange().to_corner(UL)
-        lineLeft = PhyElecLine().scale(0.5).next_to(phyG, LEFT, buff = -0.04).shift(RIGHT * 2)
-        lineRight = PhyElecLine().scale(0.5).next_to(phyG, RIGHT, buff = -0.04).shift(RIGHT * 2)
+        lineLeft = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, LEFT, buff = -0.04).shift(RIGHT * 2)
+        lineRight = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, RIGHT, buff = -0.04).shift(RIGHT * 2)
         self.play(Write(txtG2A), phyG.animate.shift(RIGHT * 2), FadeIn(lineLeft), FadeIn(lineRight))
 
+        txt4 = VGroup(
+            Text("假设我们要改装的电流表的量程为", t2c = { "量程": BLUE }),
+            Tex("0 \\sim I", color = RED_B), Tex("(I>I_{g})")
+            ).arrange().scale(0.8).to_edge(DOWN)
+        txt4[2][0][1].set_color(RED_B)
+        txt4[2][0][3:5].set_color(RED)
+        self.play(Write(txt4))
+        
+        texIg.next_to(phyG, UR, 0)
+        texI: Tex = txt4[1][0][2].copy()
+        texI.generate_target()
+        texI.target.scale(1.5).next_to(lineLeft, UP, aligned_edge = LEFT).shift(RIGHT * 0.2)
+        tipI = ArrowTip(width = 0.2, length = 0.2).set_color(RED_B).next_to(texI.target, DOWN).set_y(lineLeft.get_y())
+        self.play(FadeIn(texIg, UR * 0.3), MoveToTarget(texI), DrawBorderThenFill(tipI))
+        self.wait()
 
+        carrow = CurvedDoubleArrow(texI.get_edge_center(UR), texIg.get_edge_center(UL), angle = -PI * 0.4, color = BLUE)
+        ctxt = Text("怎么做到?", color = BLUE).scale(0.8).next_to(carrow, UP)
+        self.play(ShowCreation(carrow), Write(ctxt, run_time = 1.6))
+        self.wait(1.5)
 
+        txt5 = VGroup(
+            Text("由于"), Tex("I>I_{g}"), Text("，因此要将"), 
+            Tex("I", color = RED_B), Text("“缩小”为", t2c = { "“缩小”": GOLD }), Tex("I_{g}", color = RED)
+            ).arrange().scale(0.8)
+        txt5[1][0][0].set_color(RED_B)
+        txt5[1][0][2:4].set_color(RED)
+        txt6 = Text("同时我们又知道，并联分流", t2c = { "并联": BLUE, "分流": GOLD }).scale(0.8)
+        txt7 = Text("因此我们可以将一个较小的电阻并联以分流", t2c = { "较小的电阻": BLUE, "分流": GOLD }).scale(0.8)
+        vgTxt5_7 = VGroup(txt5, txt6, txt7).arrange(DOWN).to_edge(DOWN)
+        self.play(
+            FadeOut(carrow, run_time = 0.3), FadeOut(ctxt, run_time = 0.3), FadeOut(txt4, run_time = 0.3), 
+            Write(txt5[:len(txt5) - 1])
+            )
+        self.play(ReplacementTransform(txt5[-3].copy(), txt5[-1], path_arc = -PI / 2))
+        self.wait(0.8)
+        self.play(Write(txt6))
+        self.wait(0.8)
+        self.play(Write(txt7))
+        self.wait()
+        
+        
+        
         # phyG_M = PhyMaterialEquip("G", grad_up_num_step = 1, bottom_rect_height = 0.3).scale(1.5)
         # phyG_M.nums.set_opacity(0)
         # phyG_Txt = Text("表头", color = BLUE).scale(0.6).next_to(phyG_M.get_edge_center(UR), DL, SMALL_BUFF)
