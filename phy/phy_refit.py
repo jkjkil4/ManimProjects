@@ -83,7 +83,7 @@ class PhyRefitScene(Scene):
         self.play(FadeIn(phyG))
 
         txt1 = Text("表头的量程相当的小", t2c = { "表头": BLUE }).scale(0.8)
-        txt2 = Text("可以通过改装将其变为常用的量程相对较大的电流表和电压表", t2c = { "电流表": BLUE, "电压表": BLUE }).scale(0.8)
+        txt2 = Text("可以通过改装将其变为常用的量程相对较大的电流表和电压表", t2c = { "改装": GOLD, "电流表": BLUE, "电压表": BLUE }).scale(0.8)
         Group(txt1, txt2).arrange(DOWN).to_edge(DOWN)
         self.play(Write(txt1))
         self.play(Write(txt2))
@@ -161,6 +161,32 @@ class PhyRefitScene(Scene):
         txt6 = Text("同时我们又知道，并联分流", t2c = { "并联": BLUE, "分流": GOLD }).scale(0.8)
         txt7 = Text("因此我们可以将一个较小的电阻并联以分流", t2c = { "较小的电阻": BLUE, "分流": GOLD }).scale(0.8)
         vgTxt5_7 = VGroup(txt5, txt6, txt7).arrange(DOWN).to_edge(DOWN)
+        me = VGroup(
+            *[PhyElecLine(width = 0.06) for i in range(0, 4)], 
+            PhyElecLine(ORIGIN, UP, 0.06), PhyElecLine(ORIGIN, DOWN, 0.06),
+            PhyElecLine(ORIGIN, DOWN, 0.06), PhyElecLine(ORIGIN, UP, 0.06)
+            ).set_fill(GREY_A)
+        me[-2].next_to(me[-1], DOWN, buff = 0)
+        Group(me[-1], me[-2]).next_to(me[0], buff = 0)
+        me[1].next_to(me[-1], buff = 0, aligned_edge = UP)
+        me[2].next_to(me[-2], buff = 0, aligned_edge = DOWN)
+        me[-3].next_to(me[1], buff = 0, aligned_edge = UP)
+        me[-4].next_to(me[2], buff = 0, aligned_edge = DOWN)
+        me[3].next_to(Group(me[-3], me[-4]), buff = 0)
+        me.scale(0.7).move_to(ORIGIN).shift(DOWN)
+        me2 = me.copy().set_fill(YELLOW)
+        for m in me2[0:4]:
+            m.stretch(1.4, 1)
+        for m in me2[-1:-5:-1]:
+            m.stretch(1.4, 0)
+        def play_me(me, run_time = 0.2):
+            self.play(GrowArrow(me[0]), run_time = run_time)
+            self.play(*[GrowArrow(m) for m in me[-1:-3:-1]], run_time = run_time)
+            self.play(*[GrowArrow(m) for m in me[1:3]], run_time = run_time)
+            self.play(*[GrowArrow(m) for m in me[-3:-5:-1]], run_time = run_time)
+            self.play(GrowArrow(me[3]), run_time = run_time)
+        gPhyG = Group(phyG, lineLeft, lineRight, texI, tipI, texIg)
+        darkrect = Rectangle().set_fill(BLACK, 0.8).set_stroke(width = 0).surround(gPhyG)
         self.play(
             FadeOut(carrow, run_time = 0.3), FadeOut(ctxt, run_time = 0.3), FadeOut(txt4, run_time = 0.3), 
             Write(txt5[:len(txt5) - 1])
@@ -168,11 +194,24 @@ class PhyRefitScene(Scene):
         self.play(ReplacementTransform(txt5[-3].copy(), txt5[-1], path_arc = -PI / 2))
         self.wait(0.8)
         self.play(Write(txt6))
-        self.wait(0.8)
+        self.play(FadeIn(darkrect))
+        play_me(me)
+        play_me(me2, 0.4)
+        self.remove(me)
+        self.play(FadeOut(darkrect), FadeOut(me2))
         self.play(Write(txt7))
+
+        phyR = VGroup(
+            PhyEquipR(), PhyElecLine(ORIGIN, LEFT), PhyElecLine(ORIGIN, RIGHT), 
+            PhyElecLine(UP, DOWN), PhyElecLine(UP, DOWN)
+            )
+        phyR[1].next_to(phyR[0], LEFT, 0)
+        phyR[2].next_to(phyR[0], buff = 0)
+        phyR[3].next_to(phyR[1], LEFT, 0, DOWN)
+        phyR[4].next_to(phyR[2], RIGHT, 0, DOWN)
+        phyR.scale(0.5).next_to(Group(lineLeft, lineRight), DOWN, 0).shift(UP)
+        self.play(FadeIn(phyR, UP), gPhyG.animate.shift(UP))
         self.wait()
-        
-        
         
         # phyG_M = PhyMaterialEquip("G", grad_up_num_step = 1, bottom_rect_height = 0.3).scale(1.5)
         # phyG_M.nums.set_opacity(0)
