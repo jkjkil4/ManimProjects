@@ -371,14 +371,29 @@ class PhyRefitScene(Scene):
         self.play(Write(txt24_3), Write(txt24_4))
         self.wait(0.5)
         self.play(Transform(txt24_4, txt24_5))
-        self.play(ShowCreationThenFadeAround(Group(txt24, txt24_1, txt24_2, txt24_3, txt24_4)))
+        self.play(
+            ShowCreationThenFadeAround(Group(txt24, txt24_1, txt24_2, txt24_3, txt24_4)),
+            ShowCreationThenFadeAround(phyR[0])
+            )
         self.wait()
-        
 
-        # phyG_M = PhyMaterialEquip("G", grad_up_num_step = 1, bottom_rect_height = 0.3).scale(1.5)
-        # phyG_M.nums.set_opacity(0)
-        # phyG_Txt = Text("表头", color = BLUE).scale(0.6).next_to(phyG_M.get_edge_center(UR), DL, SMALL_BUFF)
-        # phyG = VGroup(phyG_M, phyG_Txt)
-        # self.play(FadeIn(phyG, UP))
+        # 以下未测试
+
+        self.play(
+            *[FadeOut(m) for m in [
+                txt20, txt21, txt22, txt23, txt23_1, txt23_2, txt23_4, 
+                txt24, txt24_1, txt24_2, txt24_3, txt24_4]
+                ]
+            )
         
+        darkrect.surround(gPhyG)
+        pme = PhyMaterialEquip("G", grad_zero_offset = -2, grad_up_num_step = 0.1).move_to(ORIGIN)
+        pme.drtxt = Text("mA", color = RED).scale(0.7).next_to(pme.surrounding_rect.get_edge_center(DR), SMALL_BUFF)
+        pme.add(drtxt)
+        self.play(FadeIn(darkrect))
+        self.play(FadeIn(pme, UP))
+
+        txt25 = Text("完成后，偷偷将表盘文字改掉即可").scale(0.8).to_edge(DOWN)
+        self.play(Write(txt25))
+        self.play(Transform(pme.txt, PhyArrowEquip.create_txt("A").move_to(pme.txt)))
 
