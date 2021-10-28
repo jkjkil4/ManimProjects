@@ -74,7 +74,7 @@ class PhyRefitTitleScene(Scene):
         self.wait()
         self.play(FadeOut(txt))
 
-class PhyRefitScene(Scene):
+class PhyRefitG2AScene(Scene):
     def construct(self):
         self.add(txtwatermark())
 
@@ -377,8 +377,6 @@ class PhyRefitScene(Scene):
             )
         self.wait()
 
-        # 以下未测试
-
         self.play(
             *[FadeOut(m) for m in [
                 txt20, txt21, txt22, txt23, txt23_1, txt23_2, txt23_4, 
@@ -386,20 +384,74 @@ class PhyRefitScene(Scene):
                 ]
             )
         
-        darkrect.surround(gPhyG)
-        pme = PhyMaterialEquip("G", grad_zero_offset = -2, grad_up_num_step = 0.5).move_to(ORIGIN)
-        pme.drtxt = Text("mA", color = RED).scale(0.7).next_to(pme.surrounding_rect.get_edge_center(DR), SMALL_BUFF)
-        pme.add(drtxt)
-        self.play(FadeIn(darkrect))
-        self.play(FadeIn(pme, UP))
+        pme = PhyMaterialEquip("G", grad_zero_offset = -2, grad_up_num_step = 0.5).scale(2).move_to(ORIGIN)
+        pme.drtxt = Text("mA", color = RED, font = "Noto Sans Thin").scale(0.8).next_to(pme.surrounding_rect.get_edge_center(DR), UL, SMALL_BUFF)
+        pme.add(pme.drtxt)
+        self.play(*[FadeOut(m) for m in [gPhyG, phyR, texIb]], FadeIn(pme, UP))
 
         txt25 = Text("完事后，偷偷将表盘文字改掉即可").scale(0.8).to_edge(DOWN)
-        pme2 = PhyMaterialEquip("A", grad_zero_offset = -2, grad_up_num_step = 0.1).move_to(ORIGIN)
-        pme2.drtxt = Text("A", color = RED).scale(0.7).next_to(pme2.surrounding_rect.get_edge_center(DR), SMALL_BUFF)
-        pme2.add(drtxt)
+        pme2 = PhyMaterialEquip("A", grad_zero_offset = -2, grad_up_num_step = 0.1).scale(2).move_to(ORIGIN)
+        pme2.drtxt = Text("A", color = RED, font = "Noto Sans Thin").scale(0.8).next_to(pme2.surrounding_rect.get_edge_center(DR), UL, SMALL_BUFF)
+        pme2.add(pme2.drtxt).shift(RIGHT * 2)
         self.play(Write(txt25))
-        self.play(Transform(pme, pme2))
-        self.wait()
-        self.play(*[FadeOut(m) for m in [txt25, pme, texI, tipI, texIg, phyR, texIb]])
-        gPhyG.remove(texI, tipI, texIg)
+        self.wait(0.5)
+        self.play(pme.animate.shift(LEFT * 2), ReplacementTransform(pme.copy(), pme2), run_time = 1.5)
+        self.wait(0.5)
+        self.play(FadeOut(pme, LEFT * 2), pme2.animate.shift(LEFT * 2))
+        self.wait(1.5)
+        self.play(*[FadeOut(m) for m in [txt25, pme2, txtG2A]])
 
+class PhyRefitG2VScene(Scene):
+    def construct(self):
+        self.add(txtwatermark())
+
+        txtG2V = VGroup(
+            VGroup(PhyEquipTxt("G").insert_n_curves(8).scale(0.2), Text("表头", color = BLUE).scale(0.8)).arrange(DOWN, buff = SMALL_BUFF), 
+            Tex("\\rightarrow").scale(0.8),
+            VGroup(PhyEquipTxt("V").scale(0.2), Text("电压表", color = BLUE).scale(0.8)).arrange(DOWN, buff = SMALL_BUFF)
+            ).arrange().to_corner(UL)
+        self.play(FadeIn(txtG2V, UP))
+
+        txt1_1 = VGroup(Text("表头", color = BLUE), Tex("\\rightarrow"), Text("电流表", color = BLUE))\
+            .arrange(buff = SMALL_BUFF).scale(0.8)
+        txt1_2 = VGroup(Text("表头", color = BLUE), Tex("\\rightarrow"), Text("电压表", color = BLUE))\
+            .arrange(buff = SMALL_BUFF).scale(0.8)
+        txt1_3 = VGroup(Tex("I_g", "\\rightarrow ", "I")).arrange(buff = SMALL_BUFF).scale(0.8)
+        txt1_3[0][0].set_color(RED)
+        txt1_3[0][2].set_color(RED_B)
+        txt1_4 = VGroup(Tex("U_g", "\\rightarrow ", "U")).arrange(buff = SMALL_BUFF).scale(0.8)
+        txt1_4[0][0].set_color(YELLOW)
+        txt1_4[0][2].set_color(YELLOW_B)
+        txt1_5 = Text("并联分流", t2c = { "分流": RED }).scale(0.8)
+        txt1_6 = Text("串联分压", t2c = { "分压": YELLOW }).scale(0.8)
+        vgTxtGrid = VGroup(txt1_1, txt1_2, txt1_3, txt1_4, txt1_5, txt1_6)\
+            .arrange_in_grid(3, 2, v_buff = 0.4, h_buff = 0.6)
+        txt2 = Text("对于改装成电流表，我们使用了并联分流的方式", t2c = { "电流表": BLUE, "并联分流": GOLD })\
+            .scale(0.8).to_edge(DOWN)
+        txt3 = Text("那么改装成电压表要怎么做?", t2c = { "电压表": BLUE }).scale(0.8).to_edge(DOWN)
+        txtHow = Text("?").scale(0.8).move_to(txt1_6)
+        def SuccessionUseableFadeIn(mobj):
+            mobj.generate_target()
+            mobj.target.set_opacity(1)
+            mobj.set_opacity(0)
+            return MoveToTarget(mobj)
+        self.play(
+            Succession(SuccessionUseableFadeIn(txt1_1), SuccessionUseableFadeIn(txt1_3), SuccessionUseableFadeIn(txt1_5)),
+            Write(txt2), run_time = 2
+            )
+        self.wait()
+        self.play(
+            Succession(SuccessionUseableFadeIn(txt1_2), SuccessionUseableFadeIn(txt1_4), SuccessionUseableFadeIn(txtHow), run_time = 1.4),
+            FadeOut(txt2, run_time = 0.3), Write(txt3, run_time = 1.4)
+            )
+        self.wait(1.5)
+        self.play(ReplacementTransform(txtHow, txt1_6), run_time = 1.2)
+        self.play(Indicate(txt1_6))
+        self.wait()
+        
+
+        phyG = PhyEquipTxt("G").scale(0.5)
+        phyG.txt.insert_n_curves(8)
+        lineLeft = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, LEFT, buff = -0.04)
+        lineRight = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, RIGHT, buff = -0.04)
+        gPhyG = VGroup(phyG, lineLeft, lineRight)    # 与PhyRefitG2AScene中的gPhyG结构不同
