@@ -448,10 +448,13 @@ class PhyRefitG2VScene(Scene):
         self.play(ReplacementTransform(txtHow, txt1_6), run_time = 1.2)
         self.play(Indicate(txt1_6))
         self.wait()
-        
+        self.play(FadeOut(vgTxtGrid), FadeOut(txt3))
 
         phyG = PhyEquipTxt("G").scale(0.5)
         phyG.txt.insert_n_curves(8)
         lineLeft = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, LEFT, buff = -0.04)
         lineRight = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, RIGHT, buff = -0.04)
         gPhyG = VGroup(phyG, lineLeft, lineRight)    # 与PhyRefitG2AScene中的gPhyG结构不同
+        texUg = Tex("U_g", color = YELLOW).next_to(phyG, UR, 0)
+        self.play(FadeIn(gPhyG, UP))
+        self.play(FadeIn(texUg, UR * 0.5))
