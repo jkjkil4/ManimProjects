@@ -48,6 +48,98 @@ class LinedPhyEquip(VGroup):
 
         super().__init__(self.lineLeft, self.lineRight, phyEquip)
 
+class PhyArrowEquip_(VGroup):
+    class Txt(Text):
+        def __init__(self, txt, **kwargs):
+            super().__init__(txt, font = "Noto Sans Thin")
+            self.scale(0.6)
+    class NumTxt(Text):
+        def __init__(self, txt, **kwargs):
+            super().__init__(txt, font = "Noto Sans Thin")
+            self.scale(0.3)
+    
+    CONFIG = {
+        "txtclass" : Txt,
+        "numtxtclass" : NumTxt,
+        # arc
+        "arc_radius" : 1,
+        "arc_rad" : PI / 2,
+        # grad
+        "grad_fn" : linear,
+        "grad_cnt" : 4,
+        "grad_half_len" : 0.1,
+        "grad_up_range" : (0, 4),
+        "grad_down_range" : (0, 4),
+        "grad_up_step" : None,
+        "grad_down_step" : None,
+        "grad_zero_offset" : 0,
+        "grad_num_buff" : 0.05
+    }
+    
+    def __init__(self, txt: str = "", **kwargs):
+        super().__init__(**kwargs)
+
+        self.arc_start_angle = (PI + self.arc_rad) / 2
+        self.grad_total_cnt = self.grad_cnt * 10
+
+        # 中间文字
+        self.txt = self.txtclass(txt).move_to([0, self.arc_radius / 2, 0])
+
+        # 圆弧
+        self.arc = Arc(self.arc_start_angle, -self.arc_rad, radius = self.arc_radius).set_stroke(width = 1.5)
+
+        # 刻度
+        self.grads = VGroup()
+        for i in range(self.grad_total_cnt + 1):
+            rot = self.grad_rot(i)
+            x = np.cos(rot) * self.arc_radius
+            y = np.sin(rot) * self.arc_radius
+            ghl = self.grad_half_len * (1 if i % 10 == 0 else (0.75 if i % 5 == 0 else 0.5))
+            xoffset = np.cos(rot) * ghl
+            yoffset = np.sin(rot) * ghl
+            self.grads.add(Line([x + xoffset, y + yoffset, 0], [x - xoffset, y - yoffset, 0]).set_stroke(width = 1))
+
+        # 刻度数字
+        self.up_nums, self.down_nums = VGroup(), VGroup()
+        if self.grad_up_step != None:
+            self.generate_nums(self.grad_up_range, self.grad_up_step, 1, self.up_nums)
+        if self.grad_down_step != None:
+            self.generate_nums(self.grad_down_range, self.grad_down_step, -1, self.down_nums)
+        
+        self.wo_arrow = VGroup(self.txt, self.arc, self.grads, self.up_nums, self.down_nums)
+
+        # 指针
+        self.arrow_offset = ValueTracker(0)
+        self.point = Dot().set_opacity(0)
+        self.arrow = Line().set_color(BLUE).set_stroke(width = 2)
+        def arrow_updater(m: Line):
+            k = (self.arrow_offset.get_value() - self.grad_zero_offset * 10) / self.grad_total_cnt
+            rot = self.grad_rot(k)
+            fst = self.grads[0].get_center() - self.point.get_center()
+            radius = np.sqrt(fst[0]**2 + fst[1]**2) + self.grad_half_len / 2
+            m.set_points_by_ends(self.point.get_center(), self.point.get_center() + [radius * np.cos(rot), radius * np.sin(rot), 0])
+        self.arrow.add_updater(arrow_updater)
+
+        self.add(self.wo_arrow, self.point, self.arrow)
+    
+    def grad_rot(self, ind):
+        return self.arc_start_angle - self.grad_fn(ind / self.grad_total_cnt) * self.arc_rad
+    def numstr(self, val):
+        result = '%.1f' % val
+        if result.endswith('.0'):
+            result = result[:len(result) - 2]
+        return result
+
+    def generate_nums(self, g_range, step, sign, vg):
+        for i in range(g_range[0], g_range[1] + 1):
+            rot = self.grad_rot(i * 10)
+            direction = RIGHT * np.cos(rot) + UP * np.sin(rot)
+            txt = self.numstr(step * (i - self.grad_zero_offset))
+            num = self.numtxtclass(txt)
+            num.move_to(direction * (self.arc_radius + sign * (self.grad_half_len + num.get_height() / 2 + self.grad_num_buff)))
+            num.rotate(rot - PI / 2)
+            vg.add(num)
+
 class PhyArrowEquip(VGroup):
     def __init__(
         self, txt: str = "", 
@@ -175,7 +267,8 @@ class PhyElecLine(VMobject):
 
 class PhyHeaderTestScene(Scene):
     def construct(self):
-        self.add(PhyElecLine(UP, DOWN).shift(LEFT * 3), PhyEquipR(), PhyEquipTxt("G").shift(RIGHT * 3).insert_n_curves(8))
+        self.add(PhyArrowEquip_("A", grad_cnt = 3, grad_down_step = 1, grad_up_step = 0.2, grad_zero_offset = 2).scale(1.5))
+        # self.add(PhyElecLine(UP, DOWN).shift(LEFT * 3), PhyEquipR(), PhyEquipTxt("G").shift(RIGHT * 3).insert_n_curves(8))
 
         # mobj = PhyMaterialEquip("A", wire_base_color = (BLACK, "#ff4444", "#ff4444"), wire_base_txt = ("|-|", "0.6", "3"), grad_zero_offset = -1, grad_up_num_step = 1, grad_down_num_step = 0.2).scale(2)
         # self.add(mobj)
