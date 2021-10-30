@@ -68,8 +68,8 @@ class PhyArrowEquip(VGroup):
         "grad_fn" : linear,
         "grad_cnt" : 4,
         "grad_half_len" : 0.1,
-        "grad_up_range" : (0, 4),
-        "grad_down_range" : (0, 4),
+        "grad_up_range" : None,
+        "grad_down_range" : None,
         "grad_up_step" : None,
         "grad_down_step" : None,
         "grad_zero_offset" : 0,
@@ -79,6 +79,10 @@ class PhyArrowEquip(VGroup):
     def __init__(self, txt: str = "", **kwargs):
         super().__init__(**kwargs)
 
+        if self.grad_up_range == None:
+            self.grad_up_range = (0, self.grad_cnt)
+        if self.grad_down_range == None:
+            self.grad_down_range = (0, self.grad_cnt)
         self.arc_start_angle = (PI + self.arc_rad) / 2
         self.grad_total_cnt = self.grad_cnt * 10
 
@@ -140,78 +144,6 @@ class PhyArrowEquip(VGroup):
             num.rotate(rot - PI / 2)
             vg.add(num)
 
-# class PhyArrowEquip(VGroup):
-#     def __init__(
-#         self, txt: str = "", 
-#         arc_radius = 1, arc_rad = PI / 2, grad_half_len = 0.1,
-#         grad_zero_offset = 0, grad_up_num_step = None, grad_down_num_step = None,
-#         grad_up_range = (-2, 2), grad_down_range = (-2, 2), grad_num_buff = 0.05
-#         ):
-#         # 中间文字
-#         self.txt = self.create_txt(txt).move_to([0, arc_radius / 2, 0])
-        
-#         # 圆弧
-#         arc_start_angle = (PI - arc_rad) / 2
-#         self.arc = Arc(arc_start_angle, arc_rad, radius = arc_radius).set_stroke(width = 1.5)
-        
-#         # 刻度
-#         self.grads = VGroup()
-#         for i in range(0, 41):
-#             rot = arc_start_angle + (40 - i) / 40 * arc_rad
-#             x = np.cos(rot) * arc_radius
-#             y = np.sin(rot) * arc_radius
-#             ghl = grad_half_len * (1 if i % 10 == 0 else (0.75 if i % 5 == 0 else 0.5))
-#             xoffset = np.cos(rot) * ghl
-#             yoffset = np.sin(rot) * ghl
-#             self.grads.add(Line([x + xoffset, y + yoffset, 0], [x - xoffset, y - yoffset, 0]).set_stroke(width = 1))
-        
-#         # 刻度数字
-#         self.nums = VGroup()
-#         def numrot(offset):
-#             return PI / 2 - arc_rad * offset / 4
-#         def numstr(val):
-#             result = '%.1f' % val
-#             if result.endswith('.0'):
-#                 result = result[:len(result) - 2]
-#             return result
-#         if grad_up_num_step != None:
-#             for i in range(grad_up_range[0], grad_up_range[1] + 1):
-#                 rot = numrot(i)
-#                 direction = RIGHT * np.cos(rot) + UP * np.sin(rot)
-#                 text = numstr(grad_up_num_step * (i - grad_zero_offset))
-#                 num = Text(text, font = "Noto Sans Thin").scale(0.3)
-#                 num.move_to(direction * (arc_radius + grad_half_len + num.get_height() / 2 + grad_num_buff))
-#                 num.rotate(rot - PI / 2)
-#                 self.nums.add(num)
-#         if grad_down_num_step != None:
-#             for i in range(grad_down_range[0], grad_down_range[1] + 1):
-#                 rot = numrot(i)
-#                 direction = RIGHT * np.cos(rot) + UP * np.sin(rot)
-#                 text = numstr(grad_down_num_step * (i - grad_zero_offset))
-#                 num = Text(text, font = "Noto Sans Thin").scale(0.3)
-#                 num.move_to(direction * (arc_radius - grad_half_len - num.get_height() / 2 - grad_num_buff))
-#                 num.rotate(rot - PI / 2)
-#                 self.nums.add(num)
-        
-#         self.wo_arrow = VGroup(self.txt, self.arc, self.grads, self.nums)
-        
-#         # 指针
-#         self.arrow_offset = ValueTracker(0)
-#         self.point = Dot().set_opacity(0)
-#         self.arrow = Line().set_color(BLUE).set_stroke(width = 2)
-#         def arrow_updater(m: Line):
-#             k = (20 - self.arrow_offset.get_value() - grad_zero_offset * 10) / 40
-#             rot = arc_start_angle + k * arc_rad
-#             radius = self.grads[20].get_y() - self.point.get_y() + grad_half_len / 2
-#             m.set_points_by_ends(self.point.get_center(), self.point.get_center() + [radius * np.cos(rot), radius * np.sin(rot), 0])
-#         self.arrow.add_updater(arrow_updater)
-
-#         super().__init__(self.wo_arrow, self.point, self.arrow)
-    
-#     @staticmethod
-#     def create_txt(txt: str) -> Text:
-#         return Text(txt, font = "Noto Sans Thin").scale(0.6)
-
 class PhyMaterialEquip(PhyArrowEquip):
     def __init__(
         self, txt: str, wire_base_color: tuple = (), wire_base_txt: tuple = (),
@@ -267,7 +199,11 @@ class PhyElecLine(VMobject):
 
 class PhyHeaderTestScene(Scene):
     def construct(self):
-        self.add(PhyArrowEquip("A", grad_cnt = 3, grad_down_step = 1, grad_up_step = 0.2, grad_zero_offset = 2).scale(1.5))
+        mobj = PhyArrowEquip("A", grad_cnt = 3, grad_down_step = 1, grad_up_step = 0.2, grad_zero_offset = 1).scale(2)
+        self.add(mobj)
+        self.wait(0.5)
+        self.play(mobj.arrow_offset.animate.increment_value(18), run_time = 1.5)
+
         # self.add(PhyElecLine(UP, DOWN).shift(LEFT * 3), PhyEquipR(), PhyEquipTxt("G").shift(RIGHT * 3).insert_n_curves(8))
 
         # mobj = PhyMaterialEquip("A", wire_base_color = (BLACK, "#ff4444", "#ff4444"), wire_base_txt = ("|-|", "0.6", "3"), grad_zero_offset = -1, grad_up_num_step = 1, grad_down_num_step = 0.2).scale(2)
