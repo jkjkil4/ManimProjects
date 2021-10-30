@@ -7,7 +7,7 @@ test.tex
 *.mp4
 *.kdenlive
 assets/source
-videos/GameMaker
+videos
 
 .vscode
 
