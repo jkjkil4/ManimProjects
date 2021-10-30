@@ -1,5 +1,14 @@
-assets
 manim
+manim0
+manim1
 videos
+debugTeX.py
+test.tex
+*.mp4
+*.kdenlive
+assets/source
+
+.vscode
+
 __pycache__
 phy/__pycache__
