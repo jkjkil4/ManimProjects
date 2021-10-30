@@ -92,7 +92,7 @@ class PhyRefitG2AScene(Scene):
         txt3 = Text("在这之前，我们要知道表头的几个基本属性", t2c = { "基本属性": BLUE }).scale(0.8).to_corner(DOWN)
         self.play(FadeOut(txt1, run_time = 0.3), FadeOut(txt2, run_time = 0.3), Write(txt3))
 
-        phyArwG = PhyArrowEquip(grad_up_range = (0, 0), grad_up_num_step = 0, grad_cnt = 3)\
+        phyArwG = PhyArrowEquip(grad_up_range = (0, 0), grad_up_step = 0, grad_cnt = 3)\
             .scale(2).next_to(BOTTOM, UP, buff = -1.2)
         srdrectArwG = SurroundingRectangle(phyArwG).set_color(WHITE)
         texIg = Tex("I_{g}", color = RED)
@@ -331,7 +331,7 @@ class PhyRefitG2AScene(Scene):
 
         txt21 = VGroup(
             Text("例如，要将一个内阻", t2c = { "内阻": GREEN }), Tex("R_g=6\\Omega", color = GREEN),
-            Text("，最大量程", t2c = { "[1:]": RED }), Tex("I_g=2mA", color = RED), Text("的表头")
+            Text("，最大量程", t2c = { "[1:]": RED }), Tex("I_g=3mA", color = RED), Text("的表头")
             ).arrange(buff = 0.2).scale(0.8).next_to(txt20, DOWN, MED_LARGE_BUFF, LEFT).shift(RIGHT)
         txt22 = VGroup(Text("改装为最大量程", t2c = { "最大量程": RED_B }), Tex("I=0.3A", color = RED_B), Text("的电流表"))\
             .arrange(buff = 0.2).scale(0.8).next_to(txt21, DOWN, aligned_edge = LEFT)
@@ -344,13 +344,13 @@ class PhyRefitG2AScene(Scene):
         txt23[0][2].set_color(RED_B)
         txt23[0][4:6].set_color(RED)
         txt23_1 = Tex("=").scale(0.8).next_to(txt23, buff = 0.1)
-        txt23_2 = Tex("\\frac{0.3A}{2mA}").scale(0.8).next_to(txt23_1, buff = 0.1)
+        txt23_2 = Tex("\\frac{0.3A}{3mA}").scale(0.8).next_to(txt23_1, buff = 0.1)
         txt23_2[0][0:4].set_color(RED_B)
         txt23_2[0][5:8].set_color(RED)
-        txt23_3 = Tex("\\frac{300mA}{2mA}").scale(0.8).next_to(txt23_1, buff = 0.1)
+        txt23_3 = Tex("\\frac{300mA}{3mA}").scale(0.8).next_to(txt23_1, buff = 0.1)
         txt23_3[0][0:5].set_color(RED_B)
         txt23_3[0][6:9].set_color(RED)
-        txt23_4 = Tex("=150").scale(0.8).next_to(txt23_3, buff = 0.1)
+        txt23_4 = Tex("=100").scale(0.8).next_to(txt23_3, buff = 0.1)
         txt23_4[0][1:].set_color(GOLD)
         self.play(Write(txt23))
         self.play(Write(txt23_1), Write(txt23_2))
@@ -362,10 +362,10 @@ class PhyRefitG2AScene(Scene):
         txt24_1 = Tex("=").scale(0.8).next_to(txt24, buff = 0.1)
         txt24_2 = txt19.copy().next_to(txt24_1, buff = 0.1)
         txt24_3 = txt24_1.copy().next_to(txt24_2, buff = 0.1)
-        txt24_4 = Tex("\\frac{1}{150-1}R_g").scale(0.8).next_to(txt24_3, buff = 0.1)
+        txt24_4 = Tex("\\frac{1}{100-1}R_g").scale(0.8).next_to(txt24_3, buff = 0.1)
         txt24_4[0][2:5].set_color(GOLD)
         txt24_4[0][7:9].set_color(GREEN)
-        txt24_5 = Tex("\\frac{6}{149}\\Omega", color = GREEN).scale(0.8).next_to(txt24_3, buff = 0.1)
+        txt24_5 = Tex("\\frac{6}{99}\\Omega", color = GREEN).scale(0.8).next_to(txt24_3, buff = 0.1)
         self.play(Write(txt24))
         self.play(Write(txt24_1), Write(txt24_2))
         self.play(Write(txt24_3), Write(txt24_4))
@@ -384,25 +384,33 @@ class PhyRefitG2AScene(Scene):
                 ]
             )
         
-        pme = PhyMaterialEquip("G", grad_zero_offset = -2, grad_up_num_step = 0.5).scale(2).move_to(ORIGIN)
+        pme = PhyMaterialEquip("G", grad_up_step = 1, grad_cnt = 3).scale(2).move_to(ORIGIN)
         pme.drtxt = Text("mA", color = RED, font = "Noto Sans Thin").scale(0.8).next_to(pme.surrounding_rect.get_edge_center(DR), UL, SMALL_BUFF)
         pme.add(pme.drtxt)
         self.play(*[FadeOut(m) for m in [gPhyG, phyR, texIb]], FadeIn(pme, UP))
 
+        txt25 = Text("完事后，偷偷将表盘文字改掉").scale(0.8).to_edge(DOWN)
+        txt26 = Text("也就是替换为相应的数值和文字即可", color = GREY_A).scale(0.6).to_edge(DOWN)
+        self.play(Write(txt25))
+        self.play(FadeIn(txt26, UP), txt25.animate.next_to(txt26, UP))
+        self.wait(0.5)
+        
         vgPmeTransTxt = VGroup()
-        pme_trans_txt = pme.generate_nums((0, 3), 0.1, -1, vgPmeTransTxt)
-
-        # txt25 = Text("完事后，偷偷将表盘文字改掉即可").scale(0.8).to_edge(DOWN)
-        # pme2 = PhyMaterialEquip("A", grad_zero_offset = -2, grad_up_num_step = 0.1).scale(2).move_to(ORIGIN)
-        # pme2.drtxt = Text("A", color = RED, font = "Noto Sans Thin").scale(0.8).next_to(pme2.surrounding_rect.get_edge_center(DR), UL, SMALL_BUFF)
-        # pme2.add(pme2.drtxt).shift(RIGHT * 2)
-        # self.play(Write(txt25))
-        # self.wait(0.5)
-        # self.play(pme.animate.shift(LEFT * 2), ReplacementTransform(pme.copy(), pme2), run_time = 1.5)
-        # self.wait(0.5)
-        # self.play(FadeOut(pme, LEFT * 2), pme2.animate.shift(LEFT * 2))
-        # self.wait(1.5)
-        # self.play(*[FadeOut(m) for m in [txt25, pme2, txtG2A]])
+        pme.generate_nums((0, 3), 0.1, -1, vgPmeTransTxt)
+        circle = Circle(color = YELLOW).scale(0.3).move_to(pme.txt).set_stroke(width = 0).set_fill(YELLOW, opacity = 0.3)
+        pmeTransDrtxt = Text("A", color = RED, font = "Noto Sans Thin").scale(0.8).next_to(pme.surrounding_rect.get_edge_center(DR), UL, SMALL_BUFF)
+        self.play(FadeIn(circle, scale = 0.5))
+        self.play(Transform(pme.txt, pme.Txt("A").scale(2).move_to(pme.txt)), run_time = 0.5)
+        for i in range(1, len(vgPmeTransTxt)):
+            mobj_from = pme.up_nums[i]
+            mobj_to = vgPmeTransTxt[i].scale(2).move_to(mobj_from)
+            self.play(circle.animate.move_to(mobj_from), run_time = 0.5)
+            self.play(Transform(mobj_from, mobj_to), run_time = 0.5)
+        self.play(circle.animate.move_to(pme.drtxt))
+        self.play(Transform(pme.drtxt, pmeTransDrtxt))
+        self.play(FadeOut(circle, scale = 2))
+        self.wait()
+        self.play(*[FadeOut(m) for m in [txt25, txt26, pme, txtG2A]])
 
 class PhyRefitG2VScene(Scene):
     def construct(self):
