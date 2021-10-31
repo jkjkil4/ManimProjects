@@ -8,17 +8,6 @@ def watermark():
 def txtwatermark():
     return Text("jkjkil-jiang", font = "Noto Sans Black").scale(3.5).set_opacity(0.025) 
 
-def eqRange(fromValue, toValue, step = 1):
-    value = fromValue
-    while(value <= toValue):
-        yield value
-        value += step
-
-def getPos(mobject):
-    return np.array([mobject.get_x(), mobject.get_y(), mobject.get_z()])
-    
-def getLineCenter(line):    # 用于得到线段中点
-    return (line.get_start() + line.get_end()) / 2
 def getLineLerp(line, k):
     return line.get_start() * (1 - k) + line.get_end() * k
 
@@ -34,6 +23,33 @@ def chapter_animate(self, str1, str2, color = GREY_E):
 def dictAppend(a, b):
     a.update(b)
     return a
+
+class RangeArrowTex(VGroup):
+    CONFIG = {
+        "line_config" : {},
+        "tex_config" : {},
+        "arrow_config" : {}
+    }
+
+    def __init__(self, mobj: Mobject, strtex: str, length: int, direction, **kwargs):
+        super().__init__(**kwargs)
+        
+        rot = np.arctan2(direction[1], direction[0])
+        xlen = length * np.cos(rot + PI / 2)
+        ylen = length * np.sin(rot + PI / 2)
+        v_offset = [xlen / 2, ylen / 2, 0]
+        pos = mobj.get_edge_center(direction)
+        self.line1 = Line(pos + v_offset, pos + v_offset + direction, buff = 0.1, **self.line_config)
+        self.line2 = Line(pos - v_offset, pos - v_offset + direction, buff = 0.1, **self.line_config)
+        self.tex = Tex(strtex, buff = 0.1, **self.tex_config).scale(0.8)
+        self.arrow1 = Arrow(self.tex.get_left(), [-length / 2, 0, 0], **self.arrow_config)
+        self.arrow2 = Arrow(self.tex.get_right(), [length / 2, 0, 0], **self.arrow_config)
+
+        self.tex.next_to(pos + direction, -direction)
+        self.arrow1.rotate(rot - PI / 2, about_point = ORIGIN).shift(self.tex.get_center())
+        self.arrow2.rotate(rot - PI / 2, about_point = ORIGIN).shift(self.tex.get_center())
+
+        self.add(self.line1, self.line2, self.arrow1, self.arrow2, self.tex)
 
 class Explain(VGroup):
     def __init__(self, pos, direction, mtxt, dotcolor = BLUE_E, linecolor = BLUE, **kwargs):
@@ -54,6 +70,25 @@ class Explain(VGroup):
     @staticmethod
     def mtxt(txt, txtcolor = BLUE_B):
         return Text(txt, color = txtcolor).scale(0.8)
+
+class HeaderTestScene(Scene):
+    def construct(self):
+        line = Line()
+        arrow = RangeArrowTex(line, "U", 2, UP)
+        self.add(line, arrow)
+        self.wait()
+
+        tracker = ValueTracker(PI / 2)
+        p = Point()
+        def fn(m):
+            self.remove(arrow)
+            arrow = RangeArrowTex(
+                line, "U", 2, 
+                np.cos(tracker.get_value()) * RIGHT + np.sin(tracker.get_value()) * UP
+                )
+            self.add(arrow)
+        p.add_updater(fn)
+        self.play(tracker.animate.set_value(TAU), run_time = 3)
 
 class OpeningScene(Scene): # 6s
     str1 = ""

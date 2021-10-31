@@ -466,6 +466,15 @@ class PhyRefitG2VScene(Scene):
         lineLeft = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, LEFT, buff = -0.04)
         lineRight = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, RIGHT, buff = -0.04)
         gPhyG = VGroup(phyG, lineLeft, lineRight)    # 与PhyRefitG2AScene中的gPhyG结构不同
-        texUg = Tex("U_g", color = YELLOW).next_to(phyG, UR, 0)
         self.play(FadeIn(gPhyG, UP))
+
+        txt4 = VGroup(
+            Text("假设我们要改装的电压表的量程为", t2c = { "量程": BLUE }),
+            Tex("0 \\sim U", "(U>U_g)")
+            ).arrange().scale(0.8).to_edge(DOWN)
+        txt4[1][0].set_color(YELLOW_B)
+        txt4[1][1][1].set_color(YELLOW_B)
+        txt4[1][1][3:5].set_color(YELLOW)
+        texUg = Tex("U_g", color = YELLOW).next_to(phyG, UR, -0.1)
+        self.play(Write(txt4))
         self.play(FadeIn(texUg, UR * 0.5))

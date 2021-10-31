@@ -530,7 +530,7 @@ class YbkcScene(Scene):
         self.play(rect.animate.shift(RIGHT * FRAME_WIDTH), FadeOut(txt, run_time = 0.5))
         self.remove(rect)
 
-        txtYbkcWhy = Text("原理", color = BLUE_A).move_to(txtYbkcHow)
+        txtYbkcWhy = Text("原理", color = BLUE_A).scale(0.8).move_to(txtYbkcHow)
         self.play(
             *[FadeOut(m) for m in [txtMain, txtDgtMain2, txtSlider, txtDgtSlider, txtSum, txtMul, txtPrec, txtGetResult, txtResult]],
             FadeOut(lineMain), FadeOut(lineSlider), ybkc.lmt.animate.shift(UP * 0.15 * 1.7),
@@ -695,8 +695,7 @@ class LxcwqScene(Scene):
             return mobj
         num = gradNum(0)
         self.play(Write(num), Write(arrow))
-        self.wait(0.5)
-        for i in range(0, 5, 2):
+        for i in range(2, 5, 2):
             self.play(Transform(arrow, gradArrow(i)), Transform(num, gradNum(i)), run_time = 0.8)
             self.wait(0.5)
         self.play(Transform(arrow, gradArrow(5)), Transform(num, gradNum(5)))
