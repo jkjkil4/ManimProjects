@@ -475,6 +475,11 @@ class PhyRefitG2VScene(Scene):
         txt4[1][0].set_color(YELLOW_B)
         txt4[1][1][1].set_color(YELLOW_B)
         txt4[1][1][3:5].set_color(YELLOW)
-        texUg = Tex("U_g", color = YELLOW).next_to(phyG, UR, -0.1)
+        texUg = Tex("U_g", color = YELLOW).scale(0.8).next_to(phyG, UR, -0.1)
+        rgU = RangeArrowTex(
+            Group(lineLeft, lineRight), "U", 
+            lineRight.get_right()[0] - lineLeft.get_left()[0] - 0.2, UP * 2
+            )
+        rgU.set_color(YELLOW)
         self.play(Write(txt4))
-        self.play(FadeIn(texUg, UR * 0.5))
+        self.play(FadeIn(texUg, UR * 0.5), FadeIn(rgU, DOWN))

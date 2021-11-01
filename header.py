@@ -28,24 +28,28 @@ class RangeArrowTex(VGroup):
     CONFIG = {
         "line_config" : {},
         "tex_config" : {},
-        "arrow_config" : {}
     }
 
     def __init__(self, mobj: Mobject, strtex: str, length: int, direction, **kwargs):
         super().__init__(**kwargs)
+
+        if not "stroke_width" in self.line_config:
+            self.line_config["stroke_width"] = 3
+        if not "buff" in self.line_config:
+            self.line_config["buff"] = 0.1
         
         rot = np.arctan2(direction[1], direction[0])
-        xlen = length * np.cos(rot + PI / 2)
-        ylen = length * np.sin(rot + PI / 2)
+        xlen = length * np.cos(rot - PI / 2)
+        ylen = length * np.sin(rot - PI / 2)
         v_offset = [xlen / 2, ylen / 2, 0]
         pos = mobj.get_edge_center(direction)
-        self.line1 = Line(pos + v_offset, pos + v_offset + direction, buff = 0.1, **self.line_config)
-        self.line2 = Line(pos - v_offset, pos - v_offset + direction, buff = 0.1, **self.line_config)
+        self.line1 = Line(pos + v_offset, pos + v_offset + direction, **self.line_config)
+        self.line2 = Line(pos - v_offset, pos - v_offset + direction, **self.line_config)
         self.tex = Tex(strtex, buff = 0.1, **self.tex_config).scale(0.8)
-        self.arrow1 = Arrow(self.tex.get_left(), [-length / 2, 0, 0], **self.arrow_config)
-        self.arrow2 = Arrow(self.tex.get_right(), [length / 2, 0, 0], **self.arrow_config)
+        self.arrow1 = Line(self.tex.get_left(), [-length / 2, 0, 0], **self.line_config).add_tip()
+        self.arrow2 = Line(self.tex.get_right(), [length / 2, 0, 0], **self.line_config).add_tip()
 
-        self.tex.next_to(pos + direction, -direction)
+        self.tex.move_to(pos + direction).shift(-direction / np.sqrt(direction[0]**2 + direction[1]**2) / 2)
         self.arrow1.rotate(rot - PI / 2, about_point = ORIGIN).shift(self.tex.get_center())
         self.arrow2.rotate(rot - PI / 2, about_point = ORIGIN).shift(self.tex.get_center())
 
@@ -78,17 +82,18 @@ class HeaderTestScene(Scene):
         self.add(line, arrow)
         self.wait()
 
-        tracker = ValueTracker(PI / 2)
+        # tracker = ValueTracker(PI / 2)
         p = Point()
-        def fn(m):
+        for i in range(0, 361, 2):
+            val = i / 360 * TAU + PI / 2
             self.remove(arrow)
             arrow = RangeArrowTex(
                 line, "U", 2, 
-                np.cos(tracker.get_value()) * RIGHT + np.sin(tracker.get_value()) * UP
+                (np.cos(val) * RIGHT + np.sin(val) * UP) * 2
                 )
             self.add(arrow)
-        p.add_updater(fn)
-        self.play(tracker.animate.set_value(TAU), run_time = 3)
+            self.wait(0.01)
+        # self.play(tracker.animate.set_value(TAU), run_time = 3)
 
 class OpeningScene(Scene): # 6s
     str1 = ""
