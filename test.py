@@ -5,13 +5,8 @@ import header
 
 class Test(Scene):
     def construct(self):
-        txt1 = Text("txt1").set_opacity(0)
-        txt1.generate_target()
-        txt1.target.set_opacity(1)
-        txt2 = Text("txt2").next_to(txt1, DOWN).set_opacity(0)
-        txt2.generate_target()
-        txt2.target.set_opacity(1)
-        self.play(Succession(MoveToTarget(txt1), MoveToTarget(txt2)))
+        txt = TexText("This is a text with $\\LaTeXe$ part.")
+        self.play(Write(txt))
 
 
 # class NumberPlaneScene(Scene):
