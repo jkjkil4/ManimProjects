@@ -463,9 +463,9 @@ class PhyRefitG2VScene(Scene):
 
         phyG = PhyEquipTxt("G").scale(0.5)
         phyG.txt.insert_n_curves(8)
-        lineLeft = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, LEFT, buff = -0.04)
+        lineLeft = PhyElecLine(LEFT, RIGHT).scale(0.5).next_to(phyG, LEFT, buff = -0.04)
         lineRight = PhyElecLine(LEFT * 2, RIGHT * 2).scale(0.5).next_to(phyG, RIGHT, buff = -0.04)
-        gPhyG = VGroup(phyG, lineLeft, lineRight)    # 与PhyRefitG2AScene中的gPhyG结构不同
+        gPhyG = VGroup(phyG, lineLeft, lineRight).move_to(ORIGIN)    # 与PhyRefitG2AScene中的gPhyG结构不同
         self.play(FadeIn(gPhyG, UP))
 
         txt4 = VGroup(
@@ -480,6 +480,24 @@ class PhyRefitG2VScene(Scene):
             Group(lineLeft, lineRight), "U", 
             lineRight.get_right()[0] - lineLeft.get_left()[0] - 0.2, UP * 2
             )
-        rgU.set_color(YELLOW)
+        rgU.set_color(YELLOW_B)
         self.play(Write(txt4))
         self.play(FadeIn(texUg, UR * 0.5), FadeIn(rgU, DOWN))
+        self.wait(0.5)
+
+        txt5 = VGroup(
+            Text("为了将"), Tex("U", color = YELLOW_B),
+            Text('"缩小"为', t2c = { "[:4]": GOLD }), Tex("U_g", color = YELLOW)
+            ).arrange().scale(0.8).to_edge(DOWN)
+        txt6 = Text("我们将一个较大的电阻串联以分压", t2c = { "较大的电阻": BLUE, "分压": GOLD })\
+            .scale(0.8).to_edge(DOWN)
+        lineRight2 = PhyElecLine(LEFT * 0.5, RIGHT * 0.5).scale(0.5).next_to(phyG, RIGHT, buff = -0.04)
+        phyR = PhyEquipR().scale(0.5).next_to(lineRight2, buff = 0)
+        lineRight3 = PhyElecLine(phyR.get_right(), lineRight.get_right(), width = 0.05)
+        texUc = Tex("U", font = "宋体", color = YELLOW).scale(0.8).next_to(phyR, UR, SMALL_BUFF)
+        texUc = VGroup(texUc, Text("串", slant = ITALIC, color = YELLOW).scale(0.5).next_to(texUc, DR, 0).shift(UP * 0.1)).shift(LEFT * 0.2)
+        self.play(FadeOut(txt4, run_time = 0.3), Write(txt5))
+        self.wait(0.5)
+        self.play(FadeIn(txt6, UP), txt5.animate.next_to(txt6, UP))
+        self.play(Transform(lineRight, lineRight2), FadeIn(phyR), GrowArrow(lineRight3))
+        self.play(FadeIn(texUc, UR * 0.5))
