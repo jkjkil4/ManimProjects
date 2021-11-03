@@ -678,3 +678,28 @@ class PhyRefitG2VScene(Scene):
                 gPhyG, rgU, texUc, texUg, txtG2V]
                 ]
             )
+
+class PhyRefitCalibrateScene(Scene):
+    def construct(self):
+        self.add(txtwatermark())
+
+        txt1 = Text("为了检验改装后的电表是否准确", t2c = { "检验": BLUE, "是否准确": GOLD }).scale(0.8)
+        txt2 = Text("我们需要对电表进行校准", t2c = { "校准": BLUE }).scale(0.8)
+        Group(txt1, txt2).arrange(DOWN)
+        self.play(FadeIn(txt1, UP))
+        self.wait(0.5)
+        self.play(Write(txt2))
+        self.wait(0.8)
+        self.play(FadeOut(txt1), FadeOut(txt2))
+
+        phyA = PhyEquipTxt("A").scale(0.6)
+        phyAT = PhyEquipTxt("A").set_color(YELLOW).scale(0.6).shift(RIGHT * 1.5)
+        txt3 = Text("假设这是我们改装后的电流表", t2c = { "改装后": GOLD, "电流表": BLUE }).to_edge(DOWN).scale(0.8)
+        txt4 = Text("右侧黄色的是已知准确的电流表", t2c = { "黄色": YELLOW, "准确": BLUE }).to_edge(DOWN).scale(0.7)
+        self.play(FadeIn(phyA, UP), DrawBorderThenFill(txt3))
+        self.wait(0.5)
+        self.play(
+            FadeIn(phyAT, RIGHT), phyA.animate.shift(LEFT * 1.5),
+            FadeIn(txt4, UP), txt3.animate.next_to(txt4, UP)
+            )
+        self.wait(0.8)
