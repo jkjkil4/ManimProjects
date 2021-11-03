@@ -331,7 +331,7 @@ class PhyRefitG2AScene(Scene):
         self.wait(0.5)
 
         txt21 = VGroup(
-            Text("例如，要将一个内阻", t2c = { "内阻": GREEN }), Tex("R_g=6\\Omega", color = GREEN),
+            Text("例如，要将一个内阻", t2c = { "内阻": GREEN }), Tex("R_g=2\\Omega", color = GREEN),
             Text("，最大量程", t2c = { "[1:]": RED }), Tex("I_g=3mA", color = RED), Text("的表头")
             ).arrange(buff = 0.2).scale(0.8).next_to(txt20, DOWN, MED_LARGE_BUFF, LEFT).shift(RIGHT)
         txt22 = VGroup(Text("改装为最大量程", t2c = { "最大量程": RED_B }), Tex("I=0.3A", color = RED_B), Text("的电流表"))\
@@ -366,7 +366,7 @@ class PhyRefitG2AScene(Scene):
         txt24_4 = Tex("\\frac{1}{100-1}R_g").scale(0.8).next_to(txt24_3, buff = 0.1)
         txt24_4[0][2:5].set_color(GOLD)
         txt24_4[0][7:9].set_color(GREEN)
-        txt24_5 = Tex("\\frac{6}{99}\\Omega", color = GREEN).scale(0.8).next_to(txt24_3, buff = 0.1)
+        txt24_5 = Tex("\\frac{2}{99}\\Omega", color = GREEN).scale(0.8).next_to(txt24_3, buff = 0.1)
         self.play(Write(txt24))
         self.play(Write(txt24_1), Write(txt24_2))
         self.play(Write(txt24_3), Write(txt24_4))
@@ -616,3 +616,65 @@ class PhyRefitG2VScene(Scene):
         self.play(FadeIn(txt17), ReplacementTransform(txt15[-1].copy().set_opacity(0.5), txt18, path_arc = -PI / 2))
         self.play(ShowCreationThenFadeAround(txt18))
         self.wait()
+        
+        txt19 = VGroup(texRcL.copy(), txt17.copy(), txt18.copy())
+        txt19[1:3].next_to(txt19[0])
+        txt19.next_to(txtG2V, DOWN, LARGE_BUFF * 1.5, LEFT)
+        self.play(*[FadeOut(m) for m in [txt11, txt11UndLine, vgTxt12_14, txt15, txt16, txt17, txt18]], FadeIn(txt19))
+        self.wait(0.5)
+
+        txt20 = VGroup(
+            Text("例如，要将一个内阻", t2c = { "内阻": GREEN }), Tex("R_g=2\\Omega", color = GREEN),
+            Text("，满篇电压", t2c = { "[1:]": YELLOW }), Tex("U_g=6mV", color = YELLOW), Text("的表头")
+            ).arrange(buff = 0.2).scale(0.8).next_to(txt19, DOWN, MED_LARGE_BUFF, LEFT).shift(RIGHT)
+        txt21 = VGroup(Text("改装为最大量程", t2c = { "最大量程": YELLOW_B }), Tex("U=3V", color = YELLOW_B), Text("的电流表"))\
+            .arrange(buff = 0.2).scale(0.8).next_to(txt20, DOWN, aligned_edge = LEFT)
+        self.play(Write(txt20))
+        self.wait(0.5)
+        self.play(Write(txt21))
+
+        txt22 = Tex("n=\\frac{U}{U_g}").scale(0.8).next_to(txt21, DOWN, MED_LARGE_BUFF, LEFT)
+        txt22[0][0].set_color(GOLD)
+        txt22[0][2].set_color(YELLOW_B)
+        txt22[0][4:6].set_color(YELLOW)
+        txt22_1 = Tex("=").scale(0.8).next_to(txt22, buff = 0.1)
+        txt22_2 = Tex("\\frac{3V}{6mV}").scale(0.8).next_to(txt22_1, buff = 0.1)
+        txt22_2[0][0:2].set_color(YELLOW_B)
+        txt22_2[0][4:7].set_color(YELLOW)
+        txt22_3 = Tex("\\frac{3000mV}{6mV}").scale(0.8).next_to(txt22_1, buff = 0.1)
+        txt22_3[0][0:6].set_color(YELLOW_B)
+        txt22_3[0][7:10].set_color(YELLOW)
+        txt22_4 = Tex("=500").scale(0.8).next_to(txt22_3, buff = 0.1)
+        txt22_4[0][1:].set_color(GOLD)
+        self.play(Write(txt22))
+        self.play(Write(txt22_1), Write(txt22_2))
+        self.play(Transform(txt22_2, txt22_3))
+        self.play(DrawBorderThenFill(txt22_4))
+        self.wait(0.8)
+
+        txt23 = texRcL.copy().next_to(txt22_4, buff = MED_LARGE_BUFF)
+        txt23_1 = Tex("=").scale(0.8).next_to(txt23, buff = 0.1)
+        txt23_2 = txt18.copy().next_to(txt23_1, buff = 0.1)
+        txt23_3 = txt23_1.copy().next_to(txt23_2, buff = 0.1)
+        txt23_4 = Tex("(500-1)", "R_g").scale(0.8).next_to(txt23_3, buff = 0.1)
+        txt23_4[0][1:4].set_color(GOLD)
+        txt23_4[1].set_color(GREEN)
+        txt23_5 = Tex("2994\\Omega", color = GREEN).scale(0.8).next_to(txt23_3, buff = 0.1)
+        self.play(Write(txt23))
+        self.play(Write(txt23_1), Write(txt23_2))
+        self.play(Write(txt23_3), Write(txt23_4))
+        self.wait(0.5)
+        self.play(Transform(txt23_4, txt23_5))
+        self.play(
+            ShowCreationThenFadeAround(Group(txt23, txt23_1, txt23_2, txt23_3, txt23_4)),
+            ShowCreationThenFadeAround(phyR)
+            )
+        self.wait()
+
+        self.play(
+            *[FadeOut(m) for m in [
+                txt19, txt20, txt21, txt22, txt22_1, txt22_2, txt22_4, 
+                txt23, txt23_1, txt23_2, txt23_3, txt23_4,
+                gPhyG, rgU, texUc, texUg, txtG2V]
+                ]
+            )
