@@ -683,6 +683,16 @@ class PhyRefitCalibrateScene(Scene):
     def construct(self):
         self.add(txtwatermark())
 
+        def SuccessionUseableFadeIn(mobj):
+            mobj.generate_target()
+            mobj.target.set_opacity(1)
+            mobj.set_opacity(0)
+            return MoveToTarget(mobj)
+        def SuccessionUseableGrowArrow(m):
+            m.generate_target()
+            m.scale(0, about_point = m.get_start())
+            return MoveToTarget(m)
+
         txt1 = Text("为了检验改装后的电表是否准确", t2c = { "检验": BLUE, "是否准确": GOLD }).scale(0.8)
         txt2 = Text("我们需要对电表进行校准", t2c = { "校准": BLUE }).scale(0.8)
         Group(txt1, txt2).arrange(DOWN)
@@ -710,12 +720,56 @@ class PhyRefitCalibrateScene(Scene):
         txt5 = Text("那么将它们串联，连接到电路中", t2c = { "串联": GOLD }).scale(0.8)
         txt6 = Text("观察示数是否一致即可", t2c = { "是否一致": GOLD }).scale(0.7).to_edge(DOWN)
         txt5.next_to(txt6, UP)
-        def SuccessionUseableGrowArrow(m):
-            m.generate_target()
-            m.scale(0, about_point = m.get_start())
-            return MoveToTarget(m)
         self.play(
             Write(txt5), FadeOut(txt3), FadeOut(txt4),
             Succession(*[SuccessionUseableGrowArrow(m) for m in [lineLeft, lineMiddle, lineRight]], run_time = 1)
             )
         self.play(Write(txt6))
+        self.wait()
+
+        # 以下未测试
+
+        '''
+             ·--2--V--5--·
+             |           |
+            1·--3--V--6--·8
+             |           |
+        --0--·--4--R--7--·--9--
+        '''
+        lineB = VGroup(
+            PhyElecLine(), PhyElecLine(DOWN * 1.5, UP * 1.5),
+            *[PhyElecLine(*right_line_args) for _ in range(6)],
+            PhyElecLine(UP * 1.5, DOWN * 1.5), PhyElecLine()
+            )
+        phyV = PhyEquipTxt("V").scale(0.5)
+        phyVT = PhyEquipTxt("V").set_color(YELLOW).scale(0.5)
+        phyR = PhyEquipR().scale(0.5)
+        lineB[1].next_to(lineB[0], buff = 0, aligned_edge = DOWN)
+        Group(lineB[2], phyV, lineB[5]).arrange(buff = 0).next_to(lineB[1], buff = 0, aligned_edge = UP)
+        Group(lineB[3], phyVT, lineB[6]).arrange(buff = 0).next_to(lineB[1], buff = 0)
+        Group(lineB[4], phyR, lineB[7]).arrange(buff = 0).next_to(lineB[1], buff = 0, ailgned_edge = DOWN)
+        lineB[8].next_to(lineB[7], buff = 0, aligned_edge = DOWN)
+        line[9].next_to(line[8], buff = 0, aligned_edge = DOWN)
+        lineB.move_to(ORIGIN)
+        txt7 = Text("对于电压表来说则是将其", t2c = { "电压表": BLUE }).scale(0.8)
+        txt8 = Text("和已知准确的电压表并联到电路两端", t2c = { "准确的": YELLOW, "并联": BLUE }).scale(0.8)
+        txt9 = Text("观察示数是否一致即可", t2c = { "是否一致": GOLD }).scale(0.8)
+        vgTxt7_9 = VGroup(txt7, txt8, txt9).arrange(DOWN).to_edge(DOWN)
+        darkrect = Rectangle().set_fill(BLACK, 0.8).set_stroke(width = 0).surround(Group(lineLeft, phyA, lineRight))
+        self.play(
+            FadeIn(darkrect),
+            Succession(
+                SuccessionUseableGrowArrow(lineB[0]), SuccessionUseableGrowArrow(lineB[1]),
+                AnimationGroup(*[SuccessionUseableGrowArrow(m) for m in lineB[2:5]]),
+                AnimationGroup(*[SuccessionUseableFadeIn(m) for m in [phyV, phyVT, phyR]]),
+                AnimationGroup(*[SuccessionUseableGrowArrow(m) for m in lineB[5:8]]),
+                SuccessionUseableGrowArrow(lineB[8]), SuccessionUseableGrowArrow(lineB[9]),
+                run_time = 1),
+            Write(txt7)
+            )
+        self.play(Write(txt8))
+        self.wait(0.8)
+        self.play(FadeIn(txt9, UP))
+        self.wait()
+
+        
