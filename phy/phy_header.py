@@ -199,7 +199,7 @@ class PhyElecLine(VMobject):
 
 class PhyHeaderTestScene(Scene):
     def construct(self):
-        mobj = PhyArrowEquip("A", grad_cnt = 3, grad_down_step = 1, grad_up_step = 0.2, grad_zero_offset = 1).scale(2)
+        mobj = PhyArrowEquip("A", grad_cnt = 4, grad_zero_offset = 1, grad_fn = rush_into).scale(2)
         self.add(mobj)
         self.wait(0.5)
         self.play(mobj.arrow_offset.animate.increment_value(18), run_time = 1.5)

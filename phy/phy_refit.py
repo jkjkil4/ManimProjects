@@ -640,7 +640,7 @@ class PhyRefitG2VScene(Scene):
         txt22_1 = Tex("=").scale(0.8).next_to(txt22, buff = 0.1)
         txt22_2 = Tex("\\frac{3V}{6mV}").scale(0.8).next_to(txt22_1, buff = 0.1)
         txt22_2[0][0:2].set_color(YELLOW_B)
-        txt22_2[0][4:7].set_color(YELLOW)
+        txt22_2[0][3:6].set_color(YELLOW)
         txt22_3 = Tex("\\frac{3000mV}{6mV}").scale(0.8).next_to(txt22_1, buff = 0.1)
         txt22_3[0][0:6].set_color(YELLOW_B)
         txt22_3[0][7:10].set_color(YELLOW)
@@ -692,8 +692,8 @@ class PhyRefitCalibrateScene(Scene):
         self.wait(0.8)
         self.play(FadeOut(txt1), FadeOut(txt2))
 
-        phyA = PhyEquipTxt("A").scale(0.6)
-        phyAT = PhyEquipTxt("A").set_color(YELLOW).scale(0.6).shift(RIGHT * 1.5)
+        phyA = PhyEquipTxt("A").scale(0.5)
+        phyAT = PhyEquipTxt("A").set_color(YELLOW).scale(0.5).shift(RIGHT * 1.5)
         txt3 = Text("假设这是我们改装后的电流表", t2c = { "改装后": GOLD, "电流表": BLUE }).to_edge(DOWN).scale(0.8)
         txt4 = Text("右侧黄色的是已知准确的电流表", t2c = { "黄色": YELLOW, "准确": BLUE }).to_edge(DOWN).scale(0.7)
         self.play(FadeIn(phyA, UP), DrawBorderThenFill(txt3))
@@ -703,3 +703,19 @@ class PhyRefitCalibrateScene(Scene):
             FadeIn(txt4, UP), txt3.animate.next_to(txt4, UP)
             )
         self.wait(0.8)
+
+        lineLeft = PhyElecLine(phyA.get_left() + LEFT, phyA.get_left(), 0.05)
+        lineMiddle = PhyElecLine(phyA.get_right(), phyAT.get_left(), 0.05)
+        lineRight = PhyElecLine(phyAT.get_right(), phyAT.get_right() + RIGHT, 0.05)
+        txt5 = Text("那么将它们串联，连接到电路中", t2c = { "串联": GOLD }).scale(0.8)
+        txt6 = Text("观察示数是否一致即可", t2c = { "是否一致": GOLD }).scale(0.7).to_edge(DOWN)
+        txt5.next_to(txt6, UP)
+        def SuccessionUseableGrowArrow(m):
+            m.generate_target()
+            m.scale(0, about_point = m.get_start())
+            return MoveToTarget(m)
+        self.play(
+            Write(txt5), FadeOut(txt3), FadeOut(txt4),
+            Succession(*[SuccessionUseableGrowArrow(m) for m in [lineLeft, lineMiddle, lineRight]], run_time = 1)
+            )
+        self.play(Write(txt6))
