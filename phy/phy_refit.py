@@ -738,7 +738,7 @@ class PhyRefitCalibrateScene(Scene):
         '''
         lineB = VGroup(
             PhyElecLine(), PhyElecLine(DOWN * 1.5, UP * 1.5),
-            *[PhyElecLine(*right_line_args) for _ in range(6)],
+            *[PhyElecLine(LEFT / 2, RIGHT / 2) for _ in range(6)],
             PhyElecLine(UP * 1.5, DOWN * 1.5), PhyElecLine()
             )
         phyV = PhyEquipTxt("V").scale(0.5)
@@ -747,9 +747,9 @@ class PhyRefitCalibrateScene(Scene):
         lineB[1].next_to(lineB[0], buff = 0, aligned_edge = DOWN)
         Group(lineB[2], phyV, lineB[5]).arrange(buff = 0).next_to(lineB[1], buff = 0, aligned_edge = UP)
         Group(lineB[3], phyVT, lineB[6]).arrange(buff = 0).next_to(lineB[1], buff = 0)
-        Group(lineB[4], phyR, lineB[7]).arrange(buff = 0).next_to(lineB[1], buff = 0, ailgned_edge = DOWN)
+        Group(lineB[4], phyR, lineB[7]).arrange(buff = 0).next_to(lineB[1], buff = 0, aligned_edge = DOWN)
         lineB[8].next_to(lineB[7], buff = 0, aligned_edge = DOWN)
-        line[9].next_to(line[8], buff = 0, aligned_edge = DOWN)
+        lineB[9].next_to(lineB[8], buff = 0, aligned_edge = DOWN)
         lineB.move_to(ORIGIN)
         txt7 = Text("对于电压表来说则是将其", t2c = { "电压表": BLUE }).scale(0.8)
         txt8 = Text("和已知准确的电压表并联到电路两端", t2c = { "准确的": YELLOW, "并联": BLUE }).scale(0.8)
@@ -757,6 +757,7 @@ class PhyRefitCalibrateScene(Scene):
         vgTxt7_9 = VGroup(txt7, txt8, txt9).arrange(DOWN).to_edge(DOWN)
         darkrect = Rectangle().set_fill(BLACK, 0.8).set_stroke(width = 0).surround(Group(lineLeft, phyA, lineRight))
         self.play(
+            *[FadeOut(m) for m in [txt5, txt6]],
             FadeIn(darkrect),
             Succession(
                 SuccessionUseableGrowArrow(lineB[0]), SuccessionUseableGrowArrow(lineB[1]),
