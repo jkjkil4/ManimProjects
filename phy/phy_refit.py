@@ -718,7 +718,7 @@ class PhyRefitCalibrate1Scene(Scene):
         lineMiddle = PhyElecLine(phyA.get_right(), phyAT.get_left(), 0.05)
         lineRight = PhyElecLine(phyAT.get_right(), phyAT.get_right() + RIGHT, 0.05)
         txt5 = Text("那么将它们串联，连接到电路中", t2c = { "串联": GOLD }).scale(0.8)
-        txt6 = Text("观察示数是否一致即可", t2c = { "是否一致": GOLD }).scale(0.7).to_edge(DOWN)
+        txt6 = Text("观察示数是否一致即可", t2c = { "是否一致": BLUE }).scale(0.7).to_edge(DOWN)
         txt5.next_to(txt6, UP)
         self.play(
             Write(txt5), FadeOut(txt3), FadeOut(txt4),
@@ -727,7 +727,24 @@ class PhyRefitCalibrate1Scene(Scene):
         self.play(Write(txt6))
         self.wait()
 
-        # 以下未测试
+        phyEqpA = PhyMaterialEquip("A", grad_cnt = 3, grad_up_step = 0.1).scale(2)
+        phyEqpAT = PhyMaterialEquip("A", grad_cnt = 3, grad_up_step = 0.1).scale(2)
+        Group(phyEqpAT.txt, phyEqpAT.surrounding_rect, phyEqpAT.bottom_rect).set_color(YELLOW)
+        Group(phyEqpA, phyEqpAT).arrange()
+        self.play(
+            *[FadeOut(m, run_time = 0.3) for m in [lineLeft, phyA, lineMiddle, phyAT, lineRight]],
+            FadeIn(phyEqpA, DOWN), FadeIn(phyEqpAT, DOWN)
+            )
+        def dEqpAAnimate(d):
+            self.play(*[m.arrow_offset.animate.increment_value(d) for m in [phyEqpA, phyEqpAT]], rate_func = rush_from)
+        dEqpAAnimate(30)
+        dEqpAAnimate(-22)
+        dEqpAAnimate(13)
+        self.wait(0.8)
+        self.play(
+            *[FadeOut(m, DOWN) for m in [phyEqpA, phyEqpAT]],
+            FadeOut(txt5), FadeOut(txt6)
+            )
 
         '''
              ·--2--V--5--·
@@ -737,28 +754,26 @@ class PhyRefitCalibrate1Scene(Scene):
         --0--·--4--R--7--·--9--
         '''
         lineB = VGroup(
-            PhyElecLine(), PhyElecLine(DOWN * 1.5, UP * 1.5),
-            *[PhyElecLine(*right_line_args) for _ in range(6)],
-            PhyElecLine(UP * 1.5, DOWN * 1.5), PhyElecLine()
+            PhyElecLine(LEFT * 2, RIGHT * 2), PhyElecLine(DOWN * 3, UP * 3),
+            *[PhyElecLine(LEFT * 2, RIGHT * 2) for _ in range(6)],
+            PhyElecLine(UP * 3, DOWN * 3), PhyElecLine(LEFT * 2, RIGHT * 2)
             ).scale(0.5)
         phyV = PhyEquipTxt("V").scale(0.5)
         phyVT = PhyEquipTxt("V").set_color(YELLOW).scale(0.5)
-        phyR = PhyEquipR().scale(0.5)
+        phyR = PhyEquipR(width = 2).scale(0.5)
         lineB[1].next_to(lineB[0], buff = 0, aligned_edge = DOWN)
         Group(lineB[2], phyV, lineB[5]).arrange(buff = 0).shift(lineB[1].get_edge_center(UR) - lineB[2].get_edge_center(UL))
         Group(lineB[3], phyVT, lineB[6]).arrange(buff = 0).next_to(lineB[1], buff = 0)
-        Group(lineB[4], phyR, lineB[7]).arrange(buff = 0).next_to(lineB[1].get_edge_center(DR) - lineB[4].get_edge_center(DL))
+        Group(lineB[4], phyR, lineB[7]).arrange(buff = 0).shift(lineB[1].get_edge_center(DR) - lineB[4].get_edge_center(DL))
+        lineB.add(phyV, phyVT, phyR)
         lineB[8].next_to(lineB[7], buff = 0, aligned_edge = DOWN)
-        line[9].next_to(line[8], buff = 0, aligned_edge = DOWN)
-        lineB.move_to(ORIGIN)
+        lineB[9].next_to(lineB[8], buff = 0, aligned_edge = DOWN)
+        lineB.move_to(UP / 2)
         txt7 = Text("对于电压表来说则是将其", t2c = { "电压表": BLUE }).scale(0.8)
-        txt8 = Text("和已知准确的电压表并联到电路两端", t2c = { "准确的": YELLOW, "并联": BLUE }).scale(0.8)
-        txt9 = Text("观察示数是否一致即可", t2c = { "是否一致": GOLD }).scale(0.8)
+        txt8 = Text("和已知准确的电压表并联到电路两端", t2c = { "准确的": YELLOW, "并联": GOLD }).scale(0.8)
+        txt9 = Text("观察示数是否一致即可", t2c = { "是否一致": BLUE }).scale(0.8)
         vgTxt7_9 = VGroup(txt7, txt8, txt9).arrange(DOWN).to_edge(DOWN)
-        self.bring_to_font(darkrect)
         self.play(
-            *[FadeOut(m) for m in [lineLeft, phyA, lineMiddle, phyAT, lineRight]],
-            FadeIn(darkrect),
             Succession(
                 SuccessionUseableGrowArrow(lineB[0]), SuccessionUseableGrowArrow(lineB[1]),
                 AnimationGroup(*[SuccessionUseableGrowArrow(m) for m in lineB[2:5]]),

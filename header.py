@@ -11,6 +11,9 @@ def txtwatermark():
 def getLineLerp(line, k):
     return line.get_start() * (1 - k) + line.get_end() * k
 
+def running_end(t, pull_factor = -0.5):
+    return 1 - running_start(1 - t, pull_factor)
+
 def chapter_animate(self, str1, str2, color = GREY_E):
     txt1 = Text(str1, color = BLUE).set_stroke(BLUE_E, 3, background = True)
     txt2 = Text(str2, color = color)
