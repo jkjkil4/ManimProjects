@@ -61,6 +61,7 @@ class PhyArrowEquip(VGroup):
     CONFIG = {
         "txtclass" : Txt,
         "numtxtclass" : NumTxt,
+        "line_width" : 1,
         # arc
         "arc_radius" : 1,
         "arc_rad" : PI / 2,
@@ -90,7 +91,7 @@ class PhyArrowEquip(VGroup):
         self.txt = self.txtclass(txt).move_to([0, self.arc_radius / 2, 0])
 
         # 圆弧
-        self.arc = Arc(self.arc_start_angle, -self.arc_rad, radius = self.arc_radius).set_stroke(width = 1.5)
+        self.arc = Arc(self.arc_start_angle, -self.arc_rad, radius = self.arc_radius).set_stroke(width = self.line_width * 1.5)
 
         # 刻度
         self.grads = VGroup()
@@ -101,7 +102,7 @@ class PhyArrowEquip(VGroup):
             ghl = self.grad_half_len * (1 if i % 10 == 0 else (0.75 if i % 5 == 0 else 0.5))
             xoffset = np.cos(rot) * ghl
             yoffset = np.sin(rot) * ghl
-            self.grads.add(Line([x + xoffset, y + yoffset, 0], [x - xoffset, y - yoffset, 0]).set_stroke(width = 1))
+            self.grads.add(Line([x + xoffset, y + yoffset, 0], [x - xoffset, y - yoffset, 0]).set_stroke(width = self.line_width))
 
         # 刻度数字
         self.up_nums, self.down_nums = VGroup(), VGroup()
@@ -115,7 +116,7 @@ class PhyArrowEquip(VGroup):
         # 指针
         self.arrow_offset = ValueTracker(0)
         self.point = Dot().set_opacity(0)
-        self.arrow = Line().set_color(BLUE).set_stroke(width = 2)
+        self.arrow = Line().set_color(BLUE).set_stroke(width = self.line_width * 2)
         def arrow_updater(m: Line):
             k = (self.arrow_offset.get_value() + self.grad_zero_offset * 10)
             rot = self.grad_rot(k)

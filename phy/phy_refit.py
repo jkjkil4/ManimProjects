@@ -8,10 +8,21 @@ from header import *
 #     "U": YELLOW_B, "U_g": YELLOW,
 #     "R": GREEN, "R_g": GREEN,
 # }
-colormap1 = { "I": RED_B, "U": YELLOW_B, "R": GREEN }
-colormap2 = { "I_g": RED, "U_g": YELLOW, "R_g": GREEN }
+# colormap1 = { "I": RED_B, "U": YELLOW_B, "R": GREEN }
+# colormap2 = { "I_g": RED, "U_g": YELLOW, "R_g": GREEN }
 
 # isolate = ["."]
+
+class PhyPictureScene(Scene):
+    def construct(self):
+        pme = PhyMaterialEquip("A", grad_cnt = 3, line_width = 2, grad_up_step = 0.1).scale(3).to_corner(DL)
+        pme.remove(pme.bottom_rect)
+        txtG2A = VGroup(
+            PhyEquipTxt("G").insert_n_curves(5), 
+            Tex("\\rightarrow").scale(5), 
+            PhyEquipTxt("A")
+            ).arrange().to_corner(UR)
+        self.add(pme, txtG2A)
 
 class PhyRefitOpeningScene(Scene):
     def construct(self):
