@@ -73,10 +73,12 @@ class PhyRefitOpeningScene(Scene):
         self.wait()
 
         txt3 = Text("之后我们便知道，在现实中电表的电阻不是理想的", t2c = { "电表": BLUE, "不是理想的": GOLD }).scale(0.8)
+        txta = Text("也就是要考虑内阻", t2c = { "内阻": BLUE }).scale(0.8)
         txt4 = Text("并且，常见的电表由表头改装而来", t2c = { "表头": BLUE }).scale(0.8)
-        Group(txt3, txt4).arrange(DOWN).to_edge(DOWN)
+        Group(txt3, txta, txt4).arrange(DOWN).to_edge(DOWN)
         crosses = [Cross(tex).insert_n_curves(8) for tex in [phyGTex, phyATex, phyVTex]]
         self.play(Write(txt3), *[FadeOut(m, run_time = 0.5) for m in [txt1, txt2]])
+        self.play(FadeIn(txta, UP))
         self.play(*[ShowCreation(cross) for cross in crosses])
         self.wait(0.8)
         self.play(
@@ -85,7 +87,7 @@ class PhyRefitOpeningScene(Scene):
             )
         self.play(Transform(phyGTxt, Text("表头", color = BLUE).scale(0.6).next_to(phyG.phyEquip, UR, SMALL_BUFF)))
         self.wait()
-        self.play(*[FadeOut(m) for m in [phyG, phyGTxt, txt3, txt4]], run_time = 0.6)
+        self.play(*[FadeOut(m) for m in [phyG, phyGTxt, txt3, txta, txt4]], run_time = 0.6)
 
 class PhyRefitTitleScene(Scene):
     def construct(self):
@@ -697,9 +699,61 @@ class PhyRefitG2VScene(Scene):
 
         self.play(
             *[FadeOut(m) for m in [
-                txt19, txt20, txt21, txt22, txt22_1, txt22_2, txt22_4, 
-                txt23, txt23_1, txt23_2, txt23_3, txt23_4,
-                gPhyG, rgU, texUc, texUg, txtG2V]
+                txt20, txt21, txt22, txt22_1, txt22_2, txt22_4, 
+                txt23, txt23_1, txt23_2, txt23_3, txt23_4]
+                ],
+            FadeOut(txtG2V, UP)
+            )
+        
+        txt24 = VGroup(
+            Text("拓展一步，要将一个内阻", t2c = { "内阻": GREEN }), Tex("R_g=1000\\Omega", color = GREEN),
+            Text("，最大量程", t2c = { "[1:]": YELLOW }), Tex("U_g=3V", color = YELLOW), Text("的电压表")
+            ).arrange(buff = 0.2).scale(0.8).next_to(txt19, DOWN, MED_LARGE_BUFF, LEFT).shift(RIGHT)
+        txt25 = VGroup(Text("改装为最大量程", t2c = { "最大量程": YELLOW_B }), Tex("U=15V", color = YELLOW_B), Text("的电压表"))\
+            .arrange(buff = 0.2).scale(0.8).next_to(txt24, DOWN, aligned_edge = LEFT)
+        self.play(Write(txt24), Transform(phyG.txt, Text("V").replace(phyG.txt)))
+        self.wait(0.5)
+        self.play(Write(txt25))
+
+        txt26 = Tex("n=\\frac{U}{U_g}").scale(0.8).next_to(txt25, DOWN, MED_LARGE_BUFF, LEFT)
+        txt26[0][0].set_color(GOLD)
+        txt26[0][2].set_color(YELLOW_B)
+        txt26[0][4:6].set_color(YELLOW)
+        txt26_1 = Tex("=").scale(0.8).next_to(txt26, buff = 0.1)
+        txt26_2 = Tex("\\frac{15V}{3V}").scale(0.8).next_to(txt26_1, buff = 0.1)
+        txt26_2[0][0:3].set_color(YELLOW_B)
+        txt26_2[0][4:6].set_color(YELLOW)
+        txt26_3 = Tex("=5").scale(0.8).next_to(txt26_2, buff = 0.1)
+        txt26_3[0][1:].set_color(GOLD)
+        self.play(Write(txt26))
+        self.play(Write(txt26_1), Write(txt26_2))
+        self.play(DrawBorderThenFill(txt26_3))
+        self.wait(0.8)
+
+        txt27 = texRcL.copy().next_to(txt26_3, buff = MED_LARGE_BUFF)
+        txt27_1 = Tex("=").scale(0.8).next_to(txt27, buff = 0.1)
+        txt27_2 = txt18.copy().next_to(txt27_1, buff = 0.1)
+        txt27_3 = txt23_1.copy().next_to(txt27_2, buff = 0.1)
+        txt27_4 = Tex("(5-1)", "R_g").scale(0.8).next_to(txt27_3, buff = 0.1)
+        txt27_4[0][1].set_color(GOLD)
+        txt27_4[1].set_color(GREEN)
+        txt27_5 = Tex("4000\\Omega", color = GREEN).scale(0.8).next_to(txt27_3, buff = 0.1)
+        self.play(Write(txt27))
+        self.play(Write(txt27_1), Write(txt27_2))
+        self.play(Write(txt27_3), Write(txt27_4))
+        self.wait(0.5)
+        self.play(Transform(txt27_4, txt27_5))
+        self.play(
+            ShowCreationThenFadeAround(Group(txt27, txt27_1, txt27_2, txt27_3, txt27_4)),
+            ShowCreationThenFadeAround(phyR)
+            )
+        self.wait()
+
+        self.play(
+            *[FadeOut(m) for m in [
+                txt19, txt24, txt25, txt26, txt26_1, txt26_2, txt26_3, 
+                txt27, txt27_1, txt27_2, txt27_3, txt27_4,
+                gPhyG, rgU, texUc, texUg]
                 ]
             )
 

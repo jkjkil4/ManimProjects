@@ -1,7 +1,7 @@
 from manimlib import *
 
 
-class PhyEquip(VMobject):
+class PhyEquip(VGroup):
     CONFIG = {
         "radius": 1
     }
@@ -9,9 +9,12 @@ class PhyEquip(VMobject):
         super().__init__(**kwargs)
 
         circle_points = Arc.create_quadratic_bezier_points(TAU, n_components = 64)
-        self.append_points(circle_points * 0.9)
-        self.append_points(circle_points)
-        self.scale(self.radius).set_stroke("#eeeeee", width = 1).set_fill(opacity = 1)
+        vmobj = VMobject()
+        vmobj.append_points(circle_points * 0.9)
+        vmobj.append_points(circle_points)
+        vmobj.scale(self.radius).set_stroke("#eeeeee", width = 1).set_fill(opacity = 1)
+
+        self.add(vmobj)
 
 class PhyEquipTxt(PhyEquip):
     def __init__(self, txt, txtscale = 1, **kwargs):
