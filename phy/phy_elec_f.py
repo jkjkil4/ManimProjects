@@ -57,6 +57,6 @@ class TestScene(Scene):
         self.wait(0.5)
         self.play(
             focal_distance_tracker.animate.set_value(2),
-            frame.animate.set_euler_angles(theta = 20 * DEGREES, phi = 70 * DEGREES, gamma = 0)
-            )
-        
+            frame.animate.set_euler_angles(theta = 20 * DEGREES, phi = 70 * DEGREES, gamma = 0),
+            run_time = 2)
+        self.wait()
