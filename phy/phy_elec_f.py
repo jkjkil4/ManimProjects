@@ -1,3 +1,5 @@
+import sys
+sys.path.append('.')
 from manimlib import *
 from header import *
 
@@ -54,9 +56,10 @@ class TestScene(Scene):
         cubeS = FaceTakedCube(color = BLUE, take_faces = (0, 0, 0, 0, 0, 1)).shift(IN * 3.5).stretch(2, 0).stretch(2, 1)
         # SGroup(cubeN, cubeS).set_gloss(0.4).set_shadow(0.4)
         self.add(cubeN, cubeS)
-        self.wait(0.5)
+        self.wait()
         self.play(
             focal_distance_tracker.animate.set_value(2),
             frame.animate.set_euler_angles(theta = 20 * DEGREES, phi = 70 * DEGREES, gamma = 0),
             run_time = 2)
         self.wait()
+        
