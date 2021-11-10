@@ -52,8 +52,8 @@ class TestScene(Scene):
 
         # self.add(txtwatermark().fix_in_frame())
 
-        cubeN = FaceTakedCube(color = RED, take_faces = (1, 0, 0, 0, 0, 0)).shift(OUT * 3.5).stretch(2, 0).stretch(2, 1)
-        cubeS = FaceTakedCube(color = BLUE, take_faces = (0, 0, 0, 0, 0, 1)).shift(IN * 3.5).stretch(2, 0).stretch(2, 1)
+        cubeN = FaceTakedCube(color = RED, take_faces = (1, 0, 0, 0, 0, 0)).next_to(ORIGIN, OUT, buff = 3).stretch(2, 0).stretch(2, 1)
+        cubeS = FaceTakedCube(color = BLUE, take_faces = (0, 0, 0, 0, 0, 1)).next_to(ORIGIN, IN, buff = 3).stretch(2, 0).stretch(2, 1)
         # SGroup(cubeN, cubeS).set_gloss(0.4).set_shadow(0.4)
         self.add(cubeN, cubeS)
         self.wait()
