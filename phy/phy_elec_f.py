@@ -69,8 +69,8 @@ class TestScene(Scene):
             .next_to(ORIGIN, OUT, buff = 3).stretch(2, 0).stretch(2, 1)
         cubeS = FaceTakedCube(color = BLUE, gloss = 0, shadow = 0, take_faces = (0, 0, 0, 0, 0, 1))\
             .next_to(ORIGIN, IN, buff = 3).stretch(2, 0).stretch(2, 1)
-        # SGroup(cubeN, cubeS).set_gloss(0.4).set_shadow(0.4)
         self.add(cubeN, cubeS, ThreeDBorder(cubeN, color = BLACK, width = 0.025), ThreeDBorder(cubeS, color = BLACK, width = 0.025))
+        self.add(Arrow(OUT * 3, IN * 3))
         self.wait()
         self.play(
             focal_distance_tracker.animate.set_value(2),
