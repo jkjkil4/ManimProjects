@@ -78,6 +78,20 @@ class Explain(VGroup):
     def mtxt(txt, txtcolor = BLUE_B):
         return Text(txt, color = txtcolor).scale(0.8)
 
+class ThreeDBorder(SGroup):
+    def __init__(self, obj: Surface, **kwargs):
+        if not "gloss" in kwargs:
+            kwargs["gloss"] = 0
+        if not "shadow" in kwargs:
+            kwargs["shadow"] = 0
+        super().__init__(**kwargs)
+        def add_borders(flist, direction):
+            self.add(*[Line3D(obj.get_edge_center(a + direction), obj.get_edge_center(a - direction), **kwargs) for a in flist])
+        add_borders([UL, UR, DL, DR], OUT)
+        add_borders([LEFT + OUT, LEFT + IN, RIGHT + OUT, RIGHT + IN], UP)
+        add_borders([UP + OUT, UP + IN, DOWN + OUT, DOWN + IN], LEFT)
+        
+
 class HeaderTestScene(Scene):
     def construct(self):
         line = Line()
@@ -97,7 +111,6 @@ class HeaderTestScene(Scene):
             self.add(arrow)
             self.wait(0.01)
         # self.play(tracker.animate.set_value(TAU), run_time = 3)
-
 class OpeningScene(Scene): # 6s
     str1 = ""
     str2 = ""
@@ -121,7 +134,6 @@ class OpeningScene(Scene): # 6s
         self.play(Write(txt2), run_time = self.txt2_time)
         self.wait()
         self.play(*[FadeOut(mobject) for mobject in self.mobjects], run_time = 1)
-
 class InfoScene(Scene): # 6s
     info_list = []
     column_count = 2
@@ -157,12 +169,10 @@ class InfoScene(Scene): # 6s
         self.play(FadeIn(background), *[Write(mobj) for mobj in info_mobjs], run_time = 1)
         self.wait(self.wait_time)
         self.play(FadeOut(background), *[Uncreate(mobj) for mobj in info_mobjs], run_time = 1)
-
 class TimeScene(InfoScene):
     def get_mobj(self, info):
         return VGroup(Text(info[0], color = BLUE).insert_n_curves(50), Text(info[1]).insert_n_curves(50))\
             .arrange().set_stroke(BLUE_E, 4, background = True, opacity = 0.6).scale(0.9)
-
 class EndScene(Scene):
     strAuthor = "jkjkil-jiang"
     strTool = "manim(动画) kdenlive(剪辑)"
@@ -184,22 +194,22 @@ class EndScene(Scene):
         self.play(*[DrawBorderThenFill(mobj) for mobj in [txtAuthor, txtTool, txtBgm]])
         self.wait(2)
 
-class GMRoomPlane(VGroup):
-    def __init__(self, xlen, ylen, color, **kwargs):
-        self.np = NumberPlane((0, xlen), (0, ylen)).apply_matrix([[1, 0], [0, -1]]).set_color(color)
-        self.npOrig = Dot(self.np.c2p(), color = BLACK)
-        self.npXArrow = Arrow(self.np.x_axis.get_start(), self.np.x_axis.get_end() + RIGHT * 0.3, buff = 0).set_fill(BLACK)
-        self.npYArrow = Arrow(self.np.y_axis.get_start(), self.np.y_axis.get_end() + DOWN * 0.3, buff = 0).set_fill(BLACK)
-        self.npXLabel = Tex("x", color = BLACK).scale(1.5).next_to(self.npXArrow)
-        self.npYLabel = Tex("y", color = BLACK).scale(1.5).next_to(self.npYArrow, DOWN)
-        super().__init__(*[self.np, self.npOrig, self.npXArrow, self.npYArrow, self.npXLabel, self.npYLabel], **kwargs)
+# class GMRoomPlane(VGroup):
+#     def __init__(self, xlen, ylen, color, **kwargs):
+#         self.np = NumberPlane((0, xlen), (0, ylen)).apply_matrix([[1, 0], [0, -1]]).set_color(color)
+#         self.npOrig = Dot(self.np.c2p(), color = BLACK)
+#         self.npXArrow = Arrow(self.np.x_axis.get_start(), self.np.x_axis.get_end() + RIGHT * 0.3, buff = 0).set_fill(BLACK)
+#         self.npYArrow = Arrow(self.np.y_axis.get_start(), self.np.y_axis.get_end() + DOWN * 0.3, buff = 0).set_fill(BLACK)
+#         self.npXLabel = Tex("x", color = BLACK).scale(1.5).next_to(self.npXArrow)
+#         self.npYLabel = Tex("y", color = BLACK).scale(1.5).next_to(self.npYArrow, DOWN)
+#         super().__init__(*[self.np, self.npOrig, self.npXArrow, self.npYArrow, self.npXLabel, self.npYLabel], **kwargs)
 
-    def animate1(self):
-        return ShowCreation(self.np, lag_ratio = 0.01)
-    def animate2Array(self):
-        return [FadeIn(self.npOrig, scale_factor = 1.3), 
-            GrowArrow(self.npXArrow), GrowArrow(self.npYArrow),
-            DrawBorderThenFill(self.npXLabel), DrawBorderThenFill(self.npYLabel)]
+#     def animate1(self):
+#         return ShowCreation(self.np, lag_ratio = 0.01)
+#     def animate2Array(self):
+#         return [FadeIn(self.npOrig, scale_factor = 1.3), 
+#             GrowArrow(self.npXArrow), GrowArrow(self.npYArrow),
+#             DrawBorderThenFill(self.npXLabel), DrawBorderThenFill(self.npYLabel)]
 
 class CodeLines(VGroup):
     def __init__(self, texts, t2c):
@@ -220,7 +230,6 @@ class CodeLines(VGroup):
         self.remove(sub)
         ul = self.get_corner(UL)
         return AnimationGroup(FadeOut(sub), self.animate.arrange(DOWN, aligned_edge = LEFT, buff = SMALL_BUFF).move_to(ul, UL))
-
 class CodeBackground(BackgroundRectangle):
     CONFIG = {
         "fill_color": "#EBEBEB",
@@ -237,7 +246,6 @@ class CodeHeader(Rectangle):
         "stroke_opacity": 1,
         "stroke_color": GREY_E,
     }
-
 class CodeView(VGroup):
     def __init__(self, title, texts, t2c, titleColor = WHITE, headerColor = GREY_D):
         self.lines = CodeLines(texts, t2c)
