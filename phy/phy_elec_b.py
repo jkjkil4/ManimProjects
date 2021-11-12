@@ -3,6 +3,15 @@ sys.path.append('.')
 from manimlib import *
 from header import *
 
+def complex_to_ndarray(num: complex, c1: int, c2: int):
+    def getv(ind: int):
+        if c1 == ind:
+            return num.real
+        if c2 == ind:
+            return num.imag
+        return 0
+    return np.array((getv(0), getv(1), getv(2)))
+
 class TestScene(Scene):
 
     def construct(self):
@@ -12,7 +21,7 @@ class TestScene(Scene):
         r = 2
         w = 4
         spiral_line = ParametricCurve(
-            lambda t: r * complex_to_R3(np.exp(1j * w * t)) + OUT * t / 3,
+            lambda t: r * complex_to_ndarray(np.exp(1j * w * t), 1, 2) + RIGHT * t / 3,
             t_min = 0, t_max = TAU * 1.5, color = RED, stroke_width = 8
             ).shift(IN * 2.5)
         self.play(ShowCreation(spiral_line), run_time = 3)

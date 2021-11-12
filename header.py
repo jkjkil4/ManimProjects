@@ -79,14 +79,20 @@ class Explain(VGroup):
         return Text(txt, color = txtcolor).scale(0.8)
 
 class ThreeDBorder(SGroup):
-    def __init__(self, obj: Surface, **kwargs):
+    def __init__(self, obj: Surface, buff = 0, **kwargs):
         if not "gloss" in kwargs:
             kwargs["gloss"] = 0
         if not "shadow" in kwargs:
             kwargs["shadow"] = 0
         super().__init__(**kwargs)
         def add_borders(flist, direction):
-            self.add(*[Line3D(obj.get_edge_center(a + direction), obj.get_edge_center(a - direction), **kwargs) for a in flist])
+            self.add(
+                *[Line3D(
+                    obj.get_edge_center(a + direction) + (a + direction) * buff, 
+                    obj.get_edge_center(a - direction) + (a - direction) * buff,
+                    **kwargs) 
+                for a in flist]
+                )
         add_borders([UL, UR, DL, DR], OUT)
         add_borders([LEFT + OUT, LEFT + IN, RIGHT + OUT, RIGHT + IN], UP)
         add_borders([UP + OUT, UP + IN, DOWN + OUT, DOWN + IN], LEFT)
@@ -111,6 +117,7 @@ class HeaderTestScene(Scene):
             self.add(arrow)
             self.wait(0.01)
         # self.play(tracker.animate.set_value(TAU), run_time = 3)
+
 class OpeningScene(Scene): # 6s
     str1 = ""
     str2 = ""

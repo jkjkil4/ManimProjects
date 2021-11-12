@@ -8,46 +8,6 @@ class Test(Scene):
         txt = TexText("This is a text with $\\LaTeXe$ part.")
         self.play(Write(txt))
 
-class ThreeDTest(Scene):
-    def construct(self):
-        # 设置视角
-        frame = self.camera.frame
-        frame.set_euler_angles(
-            theta=-30 * DEGREES,
-            phi=70 * DEGREES,
-        )
-        # frame.focal_distance = 100
-
-        def updater1(m):
-            m.rotate(DEGREES / 4)
-        frame.add_updater(updater1)
-
-        val = ValueTracker(2)
-        def updater2(m):
-            m.focal_distance = val.get_value()
-        frame.add_updater(updater2)
-
-        num = DecimalNumber(2)
-        num.add_updater(lambda m: num.set_value(float(frame.focal_distance)))
-
-        m1 = Cube(color = RED, gloss = 0.4, shadow = 0.2).stretch(0.5, 2, about_edge = OUT)
-        # #         0    1     2      3       4       5
-        # colors = (RED, BLUE, GREEN, ORANGE, PURPLE, GOLD)
-        # for mobj, color in zip(m1, colors):
-        #     mobj.set_color(color)
-        # m1[-1].set_color([RED, GREEN, BLUE, WHITE])
-        m2 = Cube(color = BLUE, gloss = 0.4, shadow = 0.2).stretch(0.5, 2, about_edge = IN)
-        m3 = Square()
-        txt = VGroup(Text("frame.focal_distance:"), num).arrange().to_corner(UL).fix_in_frame()
-        self.add(txt)
-        self.play(FadeIn(m1, IN), FadeIn(m2, OUT))
-        self.play(m1.animate.shift(OUT), m2.animate.shift(IN), FadeIn(m3, scale = 0.5))
-        self.play(val.animate.set_value(30), rate_func = rush_into, run_time = 2)
-        self.wait()
-        self.play(val.animate.set_value(0.4), rate_func = rush_from, run_time = 2)
-        self.wait()
-        
-
 
 # class NumberPlaneScene(Scene):
 #     def construct(self):
