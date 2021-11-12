@@ -8,6 +8,12 @@ class Test(Scene):
         txt = TexText("This is a text with $\\LaTeXe$ part.")
         self.play(Write(txt))
 
+class ThreeDTest(Scene):
+    def construct(self):
+        cube = VCube()
+        cylinder = Cylinder().scale(0.5).stretch(4, 2)
+        self.add(cube, cylinder)
+
 
 # class NumberPlaneScene(Scene):
 #     def construct(self):
