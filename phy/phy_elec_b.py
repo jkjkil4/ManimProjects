@@ -42,6 +42,12 @@ class PhyElecB_TitleScene(Scene):
         self.wait()
         self.play(FadeOut(txt))
 
+class PhyElecB_CurveChapterScene(ChapterScene):
+    CONFIG = {
+        "str1": "Part 1",
+        "str2": "通电螺线管"
+    }
+
 class PhyElecB_CurveScene(Scene):
     def construct(self):
         frame = self.camera.frame
@@ -68,13 +74,28 @@ class PhyElecB_CurveScene(Scene):
         iLine.set_points([
             *linePo.get_points()[::-1], *r_curve.get_points()[::-1], *lineNe.get_points()
             ])
-        # arrows = VGroup()
-        # for i in range(1, 11):
-            
+        arrows = VGroup()
+        for i in range(19, 0, -2):
+            k1 = (i + 1) / 21
+            k2 = i / 21
+            a = r_curve.get_left() * (1 - k1) + r_curve.get_right() * k1
+            b = r_curve.get_left() * (1 - k2) + r_curve.get_right() * k2
+            arrows.add(
+                ArrowTip(width = 0.15).set_stroke(RED).set_fill(RED, 0.5).move_to(a + UP)\
+                    .rotate(90 * DEGREES).rotate(-89 * DEGREES, axis = RIGHT)
+                )
+            arrows.add(
+                ArrowTip(width = 0.15).set_stroke(RED).set_fill(RED, 1).move_to(b + DOWN)\
+                    .rotate(90 * DEGREES).rotate(89 * DEGREES, axis = RIGHT)
+                )
         self.play(Write(txt1))
         self.wait(1.5)
         self.play(FadeOut(txt1, run_time = 0.3), Write(txt2))
         self.play(*map(ShowCreation, (battery, linePo, lineNe)))
         self.play(txt2.animate.next_to(txt3, UP), FadeIn(txt3, UP))
-        self.play(ShowPassingFlash(iLine), run_time = 3)
+        self.play(
+            Succession(*[SucAbleFadeIn(arrows[i], IN if i % 2 == 0 else OUT) for i in range(len(arrows))], run_time = 2),
+            ShowPassingFlash(iLine, run_time = 2.4)
+            )
+        self.wait(0.5)
 

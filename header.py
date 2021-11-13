@@ -96,7 +96,12 @@ class ThreeDBorder(SGroup):
         add_borders([UL, UR, DL, DR], OUT)
         add_borders([LEFT + OUT, LEFT + IN, RIGHT + OUT, RIGHT + IN], UP)
         add_borders([UP + OUT, UP + IN, DOWN + OUT, DOWN + IN], LEFT)
-        
+
+class SucAbleFadeIn(MoveToTarget):
+    def __init__(self, mobj, direction = ORIGIN):
+        mobj.generate_target()
+        mobj.shift(-direction).set_opacity(0)
+        super().__init__(mobj)
 
 class HeaderTestScene(Scene):
     def construct(self):
@@ -180,6 +185,30 @@ class TimeScene(InfoScene):
     def get_mobj(self, info):
         return VGroup(Text(info[0], color = BLUE).insert_n_curves(50), Text(info[1]).insert_n_curves(50))\
             .arrange().set_stroke(BLUE_E, 4, background = True, opacity = 0.6).scale(0.9)
+class ChapterScene(Scene):
+    CONFIG = {
+        "str1": "Part ?",
+        "str2": "测试"
+    }
+    def construct(self):
+        txt1 = Text(self.str1, color = BLUE).scale(1.6)
+        txt1_ = txt1.copy().scale(2).set_opacity(0.2)
+        txt2 = Text(self.str2).scale(1.2)
+        txt2_ = txt2.copy().scale(1.6).set_opacity(0.2)
+        Group(txt1, txt2).arrange(DOWN)
+        Group(txt1_, txt2_).arrange(DOWN, buff = MED_LARGE_BUFF)
+        txt1.shift(LEFT * 0.2)
+        txt2.shift(RIGHT * 0.2)
+        txt1_.shift(LEFT * 0.4)
+        txt2_.shift(RIGHT * 0.4)
+        self.play(
+            FadeIn(txt1_, RIGHT * 4), FadeIn(txt2_, LEFT * 4),
+            FadeIn(txt1, RIGHT * 2), FadeIn(txt2, LEFT * 2), 
+            rate_func = lambda t: rush_from(rush_from(t)), run_time = 2)
+        self.play(
+            FadeOut(txt1_, RIGHT * 4), FadeOut(txt2_, LEFT * 4),
+            FadeOut(txt1, RIGHT), FadeOut(txt2, LEFT),
+            rate_func = lambda t: rush_into(rush_into(t)))
 class EndScene(Scene):
     strAuthor = "jkjkil-jiang"
     strTool = "manim(动画) kdenlive(剪辑)"
