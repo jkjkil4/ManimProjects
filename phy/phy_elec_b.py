@@ -52,8 +52,9 @@ class PhyElecB_CurveScene(Scene):
     def construct(self):
         frame = self.camera.frame
         frame.set_euler_angles(theta = 10 * DEGREES, phi = 70 * DEGREES)
+        frame_theta_rate = 1
         def frame_updater(frame, dt):
-            frame.increment_theta(DEGREES * dt)
+            frame.increment_theta(DEGREES * dt * frame_theta_rate)
         frame.add_updater(frame_updater)
         
         self.add(txtwatermark().fix_in_frame())
@@ -64,7 +65,7 @@ class PhyElecB_CurveScene(Scene):
 
         txt1 = Text("这是一个由导线绕成的螺线", t2c = { "螺线": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
         txt2 = Text("将其接入电路中", t2c = { "电路": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
-        txt3 = Text("电流方向如图所示", t2c = { "电流方向": RED }).scale(0.6).to_edge(DOWN).fix_in_frame()
+        txt3 = Text("电流方向如动画所示", t2c = { "电流方向": RED }).scale(0.6).to_edge(DOWN).fix_in_frame()
         battery = Battery().apply_depth_test().shift(IN * 2)
         linePo, lineNe = VMobject().apply_depth_test(), VMobject().apply_depth_test()
         linePo.set_points((r_curve.get_end(), r_curve.get_right() + IN * 3, battery.linePo.get_center()))
@@ -99,3 +100,56 @@ class PhyElecB_CurveScene(Scene):
             )
         self.wait(0.5)
 
+        txt4 = Text("也就是说，电流沿该方向环绕", t2c = { "沿该方向环绕": GOLD }).scale(0.8).to_edge(DOWN).fix_in_frame()
+        rotate_center = r_curve.get_center()
+        rotate_points = (rotate_center + LEFT * 1.5, rotate_center + UP * 1.5, rotate_center + RIGHT * 1.5, rotate_center + DOWN * 1.5)
+        rotate_arrows = VGroup()
+        for i in range(len(rotate_points)):
+            rotate_arrows.add(Arrow(rotate_points[i - 1], rotate_points[i], path_arc = -70 * DEGREES))
+        rotate_arrows.set_color(RED).insert_n_curves(2).apply_depth_test().rotate(88 * DEGREES, axis = UP)
+        self.play(
+            *map(lambda m: FadeOut(m, run_time = 0.3), (txt2, txt3, arrows)), Write(txt4),
+            Write(rotate_arrows)
+            )
+        self.wait(0.5)
+        frame.remove_updater(frame_updater)
+        self.play(frame.animate.set_euler_angles(theta = 84 * DEGREES, phi = 86 * DEGREES), run_time = 1.6)
+        self.wait()
+        self.play(frame.animate.set_euler_angles(theta = 40 * DEGREES, phi = 65 * DEGREES), FadeOut(txt4, DOWN))
+        frame_theta_rate = 0.5
+        frame.add_updater(frame_updater)
+        self.wait()
+
+        txt5 = Text("想象用右手环绕螺线，且除拇指外四指方向与电流环绕方向一致", t2c = { "右手": BLUE, "环绕螺线": GOLD, "方向一致": GOLD })\
+            .scale(0.8).to_edge(DOWN).fix_in_frame()
+        txt6 = Text("则拇指伸出方向即为其中磁场方向", t2c = { "拇指伸出方向": BLUE, "磁场方向": PURPLE }).scale(0.7).to_edge(DOWN).fix_in_frame()
+        bLine = Arrow(rotate_center + RIGHT * 4.3, rotate_center + LEFT * 4.3).set_color(PURPLE).apply_depth_test()
+        self.play(Write(txt5))
+        self.wait(3.5)
+        self.play(FadeIn(txt6, UP), txt5.animate.next_to(txt5, UP), GrowArrow(bLine))
+        self.wait(1.5)
+        frame.remove_updater(frame_updater)
+        linePo.set_stroke(opacity = (1, 1))
+        lineNe.set_stroke(opacity = (1, 1))
+        self.play(
+            *map(FadeOut, (txt5, txt6, battery, rotate_arrows)),
+            linePo.animate.set_stroke(opacity = (0.5, 0)), lineNe.animate.set_stroke(opacity = (0.5, 0)),
+            frame.animate.set_euler_angles(theta = 0, phi = 0).set_width(frame.get_width() * 1.5), 
+            run_time = 1.6)
+        self.wait(0.8)
+        
+        txt7 = Text("且在其四周形成所示磁场", t2c = { "其四周": BLUE, "磁场": PURPLE }).scale(1.2).shift(DOWN * 3.6 + OUT * 2)
+        c = Circle(color = PURPLE, stroke_width = 6).rotate(-PI / 2)\
+            .reverse_points().next_to(rotate_center, UP, 0).stretch(4, 0).stretch(0.6, 1, about_point = rotate_center).shift(UP * 0.5)
+        circles1 = VGroup(c)
+        for i in range(1, 3):
+            k = i / 3
+            pos = rotate_center + UP * 0.5 * (1 - k)
+            c = c.copy().stretch(3, 0).stretch(4, 1).next_to(pos, UP, 0)
+            circles1.add(c)
+        circles1.apply_depth_test().apply_complex_function(lambda z: (z.real * (1 / (z.imag + 2) + 0.5) + 1j * z.imag))
+        circles2 = circles1.copy().stretch(-1, 1, about_point = rotate_center)
+        lineCenter = Line(rotate_center + RIGHT * 16, rotate_center + LEFT * 16, color = PURPLE, stroke_width = 6)\
+            .apply_depth_test()
+        self.play(*map(Write, (circles1, circles2, lineCenter)), FadeIn(txt7))
+        self.wait(10)

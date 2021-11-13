@@ -15,6 +15,19 @@ class ThreeDTest(Scene):
         cylinder = Cylinder().scale(0.5).stretch(4, 2)
         self.add(cube, cylinder)
 
+class AnimatedStreamLinesExample(Scene):
+    def construct(self):
+        coord = Axes(x_range=[-7, 7, 1], width=14,
+                     y_range=[-4, 4, 1], height=8)
+        s = StreamLines(
+            lambda x, y: (x * 0.7 + y * 0.5, y * 0.7 - x * 0.5),
+            coord,
+            magnitude_range=(0.5, 5)
+        )
+        asl = AnimatedStreamLines(s)
+        self.add(coord, asl)
+        self.wait(5)
+
 
 # class NumberPlaneScene(Scene):
 #     def construct(self):

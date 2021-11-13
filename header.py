@@ -191,9 +191,9 @@ class ChapterScene(Scene):
         "str2": "测试"
     }
     def construct(self):
-        txt1 = Text(self.str1, color = BLUE).scale(1.6)
+        txt1 = Text(self.str1, color = BLUE).scale(1.6).insert_n_curves(2)
         txt1_ = txt1.copy().scale(2).set_opacity(0.2)
-        txt2 = Text(self.str2).scale(1.2)
+        txt2 = Text(self.str2).scale(1.2).insert_n_curves(2)
         txt2_ = txt2.copy().scale(1.6).set_opacity(0.2)
         Group(txt1, txt2).arrange(DOWN)
         Group(txt1_, txt2_).arrange(DOWN, buff = MED_LARGE_BUFF)
