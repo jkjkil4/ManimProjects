@@ -52,9 +52,10 @@ class PhyElecB_CurveScene(Scene):
         
         self.add(txtwatermark().fix_in_frame())
 
-        r_curve = RCurve(height = 6, w = 10.5, step_size = DEGREES, color = GOLD)\
+        r_curve = RCurve(height = 6, w = 10.5, step_size = DEGREES * 2, color = GOLD)\
             .apply_depth_test().rotate(90 * DEGREES, axis = UP).rotate(-90 * DEGREES, axis = LEFT).shift(OUT)
         self.play(ShowCreation(r_curve))
+
         txt1 = Text("这是一个由导线绕成的螺线", t2c = { "螺线": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
         txt2 = Text("将其接入电路中", t2c = { "电路": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
         txt3 = Text("电流方向如图所示", t2c = { "电流方向": RED }).scale(0.6).to_edge(DOWN).fix_in_frame()
@@ -62,9 +63,18 @@ class PhyElecB_CurveScene(Scene):
         linePo, lineNe = VMobject().apply_depth_test(), VMobject().apply_depth_test()
         linePo.set_points((r_curve.get_end(), r_curve.get_right() + IN * 3, battery.linePo.get_center()))
         lineNe.set_points((r_curve.get_start(), r_curve.get_left() + IN * 3, battery.lineNe.get_center()))
+        linePo.insert_n_curves(8), lineNe.insert_n_curves(8)
+        iLine = VMobject(color = RED, stroke_width = 6)
+        iLine.set_points([
+            *linePo.get_points()[::-1], *r_curve.get_points()[::-1], *lineNe.get_points()
+            ])
+        # arrows = VGroup()
+        # for i in range(1, 11):
+            
         self.play(Write(txt1))
         self.wait(1.5)
         self.play(FadeOut(txt1, run_time = 0.3), Write(txt2))
         self.play(*map(ShowCreation, (battery, linePo, lineNe)))
         self.play(txt2.animate.next_to(txt3, UP), FadeIn(txt3, UP))
+        self.play(ShowPassingFlash(iLine), run_time = 3)
 
