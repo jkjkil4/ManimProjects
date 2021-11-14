@@ -52,7 +52,7 @@ def tangent_direction(mobj, alpha, d_alpha = 1e-6):
 class PhyElecB_TitleScene(Scene):
     def construct(self):
         self.add(txtwatermark())
-        txt = Text("【物理】通电螺线管与右手螺旋定则", t2c = { "【物理】": BLUE }).scale(1.4)
+        txt = Text("【物理】通电螺线管、直导线与右手螺旋定则", t2c = { "【物理】": BLUE }).scale(1.4)
         self.play(DrawBorderThenFill(txt))
         self.wait()
         self.play(FadeOut(txt))
@@ -239,14 +239,59 @@ class PhyElecB_CurveScene(Scene):
         self.play(Write(txt11), txt10.animate.set_opacity(0.2).next_to(txt11, UP))
         self.play(AnimationGroup(FadeIn(txtN, RIGHT), Write(arrowN), lag_ratio = 0.5), Transform(r_curve, r_curve2))
         self.wait(0.5)
-        self.play(Write(txt12), FadeOut(txt10, UP * 0.3, run_time = 0.3), txt11.animate.set_opacity(0.2).next_to(txt12, UP))
+        self.play(Write(txt12), FadeOut(txt10, UP * 0.3), txt11.animate.set_opacity(0.2).next_to(txt12, UP))
         self.play(Write(txtIns), *map(lambda m: FadeIn(m, LEFT), (cylinder, disk1, disk2)))
         self.wait(0.8)
 
-        txt13 = Text("都可以增强磁场", t2c = { "磁场": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
+        txt13 = Text("都可以增强磁场", t2c = { "增强": GOLD, "磁场": PURPLE }).scale(0.8).to_edge(DOWN).fix_in_frame()
         self.play(
             *map(lambda m: FadeOut(m, run_time = 0.3), (txt11, txt12)), 
             Write(txt13)
             )
         self.wait(2)
+        
+class PhyElecB_LineChapterScene(ChapterScene):
+    CONFIG = {
+        "str1": "Part 2",
+        "str2": "通电直导线"
+    }
+
+class PhyElecB_LineScene(ChapterScene):
+    def construct(self):
+        frame = self.camera.frame
+        frame.focal_distance = 50
+
+        self.add(txtwatermark())
+
+        txt01 = Text("在前面，我们通过右手螺旋定则", t2c = { "右手螺旋定则": BLUE })
+        txt02 = Text("知道了通电螺线管的磁场方向", t2c = { "磁场方向": PURPLE }).scale(0.8)
+        g = Group(txt01, txt02).arrange(DOWN)
+        self.play(Write(txt01))
+        self.wait(0.5)
+        self.play(FadeIn(txt02, UP))
+        self.wait(0.8)
+
+        line = Line(LEFT * 4.5, RIGHT * 4.5).apply_depth_test()
+        txt1 = Text("对于这根导线", t2c = { "导线": BLUE }).scale(0.8).to_edge(DOWN)
+        txt2 = Text("当我们通上电流时", t2c = { "电流": RED }).scale(0.8).to_edge(DOWN)
+        txt3 = Text("也可以通过右手螺旋定则得到磁场方向", t2c = { "右手螺旋定则": BLUE, "磁场方向": PURPLE }).scale(0.7).to_edge(DOWN)
+        tip = ArrowTip().set_color(RED).move_to(line.get_right() + LEFT * 0.4)
+        texI = Tex("I", color = RED).next_to(tip, DOWN)
+        self.play(FadeOut(g, run_time = 0.6), ShowCreation(line), Write(txt1), lag_ratio = 0.5)
+        self.wait(0.5)
+        self.play(FadeIn(txt2, UP), FadeOut(txt1, run_time = 0.3), line.animate.set_color(RED), *map(FadeIn, (tip, texI)))
+        self.play(txt2.animate.next_to(txt3, UP), Write(txt3))
+        self.wait()
+        
+        txt4 = Text("伸出拇指使其与电流同向", t2c = { "拇指": BLUE, "电流": BLUE, "同向": GOLD })\
+            .scale(0.8).to_edge(DOWN)
+        txt5 = Text("收起其余四指，则该直导线周围磁场环绕直导线的方向，与该四指同向", t2c = { "其余四指": BLUE, "磁场环绕直导线的方向": PURPLE, "同向": GOLD })\
+            .scale(0.7).to_edge(DOWN)
+        self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (txt2, txt3)), FadeIn(txt4, UP))
+        self.wait(0.5)
+        self.play(txt4.animate.next_to(txt5, UP), Write(txt5[:6]))
+        self.wait(3)
+        self.play(Write(txt5[6:]))
+        
+
         
