@@ -33,6 +33,21 @@ class Battery(VGroup):
         self.lineNe = Line(ORIGIN, DOWN * self.line_ne_len, **self.line_config)
         self.add(self.lineNe, self.linePo).arrange(RIGHT, buff = self.line_buff)
 
+class IncreaseArrow(Arrow):
+    def __init__(self, mobj, nxt_buff = 0.2, **kwargs):
+        if not "buff" in kwargs:
+            kwargs["buff"] = 0
+        if not "path_arc" in kwargs:
+            kwargs["path_arc"] = 60 * DEGREES
+        a = mobj.get_edge_center(DR) + nxt_buff * DR
+        b = mobj.get_edge_center(UR) + nxt_buff * UR
+        super().__init__(a, b, **kwargs)
+        self.fix_in_frame()
+
+def tangent_direction(mobj, alpha, d_alpha = 1e-6):
+    a1 = clip(alpha - d_alpha, 0, 1)
+    a2 = clip(alpha + d_alpha, 0, 1)
+    return mobj.pfp(a2) - mobj.pfp(a1)
 
 class PhyElecB_TitleScene(Scene):
     def construct(self):
@@ -65,7 +80,7 @@ class PhyElecB_CurveScene(Scene):
 
         txt1 = Text("这是一个由导线绕成的螺线", t2c = { "螺线": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
         txt2 = Text("将其接入电路中", t2c = { "电路": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
-        txt3 = Text("电流方向如动画所示", t2c = { "电流方向": RED }).scale(0.6).to_edge(DOWN).fix_in_frame()
+        txt3 = Text("电流方向如图所示", t2c = { "电流方向": RED }).scale(0.6).to_edge(DOWN).fix_in_frame()
         battery = Battery().apply_depth_test().shift(IN * 2)
         linePo, lineNe = VMobject().apply_depth_test(), VMobject().apply_depth_test()
         linePo.set_points((r_curve.get_end(), r_curve.get_right() + IN * 3, battery.linePo.get_center()))
@@ -123,20 +138,21 @@ class PhyElecB_CurveScene(Scene):
         txt5 = Text("想象用右手环绕螺线，且除拇指外四指方向与电流环绕方向一致", t2c = { "右手": BLUE, "环绕螺线": GOLD, "方向一致": GOLD })\
             .scale(0.8).to_edge(DOWN).fix_in_frame()
         txt6 = Text("则拇指伸出方向即为其中磁场方向", t2c = { "拇指伸出方向": BLUE, "磁场方向": PURPLE }).scale(0.7).to_edge(DOWN).fix_in_frame()
-        bLine = Arrow(rotate_center + RIGHT * 4.3, rotate_center + LEFT * 4.3).set_color(PURPLE).apply_depth_test()
-        self.play(Write(txt5))
-        self.wait(3.5)
+        bLine = Arrow(rotate_center + RIGHT * 5, rotate_center + LEFT * 5).set_color(PURPLE).apply_depth_test()
+        self.play(Write(txt5), run_time = 2.5)
+        self.wait(4)
         self.play(FadeIn(txt6, UP), txt5.animate.next_to(txt5, UP), GrowArrow(bLine))
         self.wait(1.5)
         frame.remove_updater(frame_updater)
         linePo.set_stroke(opacity = (1, 1))
         lineNe.set_stroke(opacity = (1, 1))
+        frame_saved_width = frame.get_width()
         self.play(
             *map(FadeOut, (txt5, txt6, battery, rotate_arrows)),
             linePo.animate.set_stroke(opacity = (0.5, 0)), lineNe.animate.set_stroke(opacity = (0.5, 0)),
             frame.animate.set_euler_angles(theta = 0, phi = 0).set_width(frame.get_width() * 1.5), 
-            run_time = 1.6)
-        self.wait(0.8)
+            run_time = 2)
+        self.wait(0.5)
         
         txt7 = Text("且在其四周形成所示磁场", t2c = { "其四周": BLUE, "磁场": PURPLE }).scale(1.2).shift(DOWN * 3.6 + OUT * 2)
         c = Circle(color = PURPLE, stroke_width = 6).rotate(-PI / 2)\
@@ -148,8 +164,89 @@ class PhyElecB_CurveScene(Scene):
             c = c.copy().stretch(3, 0).stretch(4, 1).next_to(pos, UP, 0)
             circles1.add(c)
         circles1.apply_depth_test().apply_complex_function(lambda z: (z.real * (1 / (z.imag + 2) + 0.5) + 1j * z.imag))
+        arrowTips1 = VGroup()
+        def get_tangent_arrows(mobj, vg):
+            for i in range(0, 10):
+                alpha = i / 10
+                tangent = tangent_direction(mobj, alpha)
+                angle = np.arctan2(tangent[1], tangent[0])
+                vg.add(ArrowTip(width = 0.25, angle = angle).set_color(PURPLE).move_to(mobj.pfp(alpha) + OUT * 0.02))
+        for circle in circles1:
+            get_tangent_arrows(circle, arrowTips1)
+        arrowTips1.apply_depth_test()
         circles2 = circles1.copy().stretch(-1, 1, about_point = rotate_center)
+        arrowTips2 = VGroup()
+        for circle in circles2:
+            get_tangent_arrows(circle, arrowTips2)
+        arrowTips2.apply_depth_test()
         lineCenter = Line(rotate_center + RIGHT * 16, rotate_center + LEFT * 16, color = PURPLE, stroke_width = 6)\
             .apply_depth_test()
-        self.play(*map(Write, (circles1, circles2, lineCenter)), FadeIn(txt7))
-        self.wait(10)
+        arrowTipsCenter = VGroup()
+        get_tangent_arrows(lineCenter, arrowTipsCenter)
+        arrowTipsCenter.apply_depth_test()
+        self.play(FadeIn(txt7), *map(Write, (circles1, circles2, lineCenter)))
+        self.remove(bLine)
+        self.play(*map(Write, (arrowTips1, arrowTips2, arrowTipsCenter)))
+        self.wait()
+
+        txt8 = Text("此时的通电螺线(管)相当于一个条形磁铁", t2c = { "通电螺线(管)": BLUE, "条形磁铁": BLUE }).scale(1.2)
+        txt9 = Text("左端为N极，右端为S极", t2c = { "N极": RED, "S极": BLUE })
+        Group(txt8, txt9).arrange(DOWN).shift(DOWN * 3.6 + OUT * 2)
+        bLeft = Rectangle(color = RED, fill_opacity = 0.7, stroke_width = 0)
+        bLeft.surround(r_curve, buff = 0).stretch(0.4, 1).stretch(0.5, 0, about_point = bLeft.get_left())
+        bRight = bLeft.copy().set_color(BLUE).next_to(bLeft, buff = 0)
+        b = VGroup(bLeft, bRight)
+        txtN = Text("N", color = RED).scale(2).next_to(b, LEFT)
+        txtS = Text("S", color = BLUE).scale(2).next_to(b)
+        self.play(FadeOut(txt7, run_time = 0.3), Write(txt8), ShowCreation(b))
+        self.wait(0.5)
+        self.play(FadeIn(txtN, RIGHT), FadeIn(txtS, LEFT), FadeIn(txt9, UP))
+        self.wait(1.5)
+        self.play(*map(FadeOut, (txt8, txt9)))
+        self.play(
+            *map(lambda m: FadeOut(m, run_time = 1), (
+                b, txtN, txtS, 
+                circles1, circles2, lineCenter,
+                arrowTips1, arrowTips2, arrowTipsCenter
+                )),
+            FadeIn(battery), linePo.animate.set_stroke(opacity = (1, 1)), lineNe.animate.set_stroke(opacity = (1, 1)),
+            frame.animate.set_euler_angles(theta = -30 * DEGREES, phi = 65 * DEGREES).set_width(frame_saved_width),
+            run_time = 2)
+        frame_theta_rate = -1
+        frame.add_updater(frame_updater)
+        self.wait(0.5)
+
+        txtI = VGroup(Text("电流"), Tex("I")).set_color(RED).arrange().scale(0.8)
+        txtN = VGroup(Text("绕圈匝数"), Tex("n")).set_color(GOLD).arrange().scale(0.8)
+        txtIns = Text("插入铁芯", t2c = { "铁芯": GREY_B }).scale(0.8)
+        vgUL = VGroup(txtI, txtN, txtIns).arrange(DOWN, aligned_edge = LEFT).to_corner(UL).fix_in_frame()
+        txt10 = Text("若增大通过的电流", t2c = { "电流": RED }).insert_n_curves(2).scale(0.8).to_edge(DOWN).fix_in_frame()
+        txt11 = Text("增加绕圈匝数", t2c = { "绕圈匝数": GOLD }).insert_n_curves(2).scale(0.8).to_edge(DOWN).fix_in_frame()
+        txt12 = Text("或在其中插入铁芯", t2c = { "铁芯": GREY_B }).insert_n_curves(2).scale(0.8).to_edge(DOWN).fix_in_frame()
+        arrowI, arrowN = [IncreaseArrow(m) for m in [txtI[1], txtN[1]]]
+        arrowI.set_color(RED)
+        arrowN.set_color(GOLD)
+        r_curve2 = RCurve(height = 6, w = 16.5, step_size = DEGREES, color = GOLD)\
+            .apply_depth_test().rotate(90 * DEGREES, axis = UP).rotate(-90 * DEGREES, axis = LEFT).shift(OUT)
+        cylinder = Cylinder(axis = RIGHT).move_to(rotate_center).scale(0.8).stretch(4.5, 0)
+        disk1 = Circle(radius = 0.8).insert_n_curves(4).set_stroke(opacity = 0).set_fill(GREY, 1)\
+            .apply_depth_test().rotate(89 * DEGREES, axis = UP).next_to(cylinder, LEFT, 0)
+        disk2 = Circle(radius = 0.8).insert_n_curves(4).set_stroke(opacity = 0).set_fill(GREY, 1)\
+            .apply_depth_test().rotate(-89 * DEGREES, axis = UP).next_to(cylinder, RIGHT, 0)
+        self.play(Write(txt10))
+        self.play(AnimationGroup(FadeIn(txtI, RIGHT), Write(arrowI), lag_ratio = 0.5))
+        self.wait(0.5)
+        self.play(Write(txt11), txt10.animate.set_opacity(0.2).next_to(txt11, UP))
+        self.play(AnimationGroup(FadeIn(txtN, RIGHT), Write(arrowN), lag_ratio = 0.5), Transform(r_curve, r_curve2))
+        self.wait(0.5)
+        self.play(Write(txt12), FadeOut(txt10, UP * 0.3, run_time = 0.3), txt11.animate.set_opacity(0.2).next_to(txt12, UP))
+        self.play(Write(txtIns), *map(lambda m: FadeIn(m, LEFT), (cylinder, disk1, disk2)))
+        self.wait(0.8)
+
+        txt13 = Text("都可以增强磁场", t2c = { "磁场": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
+        self.play(
+            *map(lambda m: FadeOut(m, run_time = 0.3), (txt11, txt12)), 
+            Write(txt13)
+            )
+        self.wait(2)
+        
