@@ -325,7 +325,7 @@ class PhyElecB_LineScene(ChapterScene):
 
         self.add(txtwatermark())
 
-        line = Line(LEFT * 4.5, RIGHT * 4.5).apply_depth_test()
+        line = Line(LEFT * 4.5, RIGHT * 4.5).apply_depth_test().shift(DOWN * 0.1)
         line.stretch(2, 0, about_point = line.get_right())
         tip = ArrowTip().set_color(RED).move_to(line.get_right() + LEFT * 0.4)
         texI = Tex("I", color = RED).next_to(tip, DOWN).rotate(-PI / 2)
@@ -334,7 +334,7 @@ class PhyElecB_LineScene(ChapterScene):
         self.play(line.animate.set_color(RED), *map(FadeIn, (tip, texI)))
         self.wait(2)
 
-        rotate_center = LEFT * 0.2
+        rotate_center = LEFT * 0.2 + DOWN * 0.1
         def get_circle(buff = 1, path_arc = 70 * DEGREES):
             radius = buff
             rotate_points = (UP * radius, LEFT * radius, DOWN * radius, RIGHT * radius)
@@ -358,9 +358,9 @@ class PhyElecB_LineScene(ChapterScene):
 
 class PhyElecB_LineSubTextScene(Scene):
     def construct(self):
-        txt1 = Text("对于这根导线", t2c = { "导线": BLUE }).scale(0.8).to_edge(DOWN)
-        txt2 = Text("当我们通上电流时", t2c = { "电流": RED }).scale(0.7).to_edge(DOWN)
-        txt3 = Text("会形成所示磁场", t2c = { "磁场": PURPLE }).scale(0.8).to_edge(DOWN)
+        txt1 = Text("对于这根导线", t2c = { "导线": BLUE }).scale(0.8).to_edge(DOWN, LARGE_BUFF)
+        txt2 = Text("当我们通上电流时", t2c = { "电流": RED }).scale(0.7).to_edge(DOWN, LARGE_BUFF)
+        txt3 = Text("会在垂直平面形成所示磁场", t2c = { "磁场": PURPLE }).scale(0.8).to_edge(DOWN, LARGE_BUFF)
         self.play(Write(txt1))
         self.wait(0.5)
         self.play(txt1.animate.next_to(txt2, UP), Write(txt2))
@@ -368,6 +368,21 @@ class PhyElecB_LineSubTextScene(Scene):
         self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (txt1, txt2)), FadeIn(txt3))
         self.wait(2)
 
+        txt4 = Text("右手螺旋定则同样适用于该磁场环绕方向的判断", t2c = { "右手螺旋定则": BLUE, "环绕方向": BLUE })\
+            .scale(0.8).to_edge(DOWN, LARGE_BUFF)
+        txt5 = Text("伸出拇指使其与电流同向", t2c = { "拇指": BLUE, "电流": BLUE, "同向": GOLD })\
+            .scale(0.8).to_edge(DOWN, LARGE_BUFF)
+        txt6 = Text("收起其余四指，则该直导线周围磁场环绕直导线的方向，与该四指同向", t2c = { "其余四指": BLUE, "磁场环绕直导线的方向": PURPLE, "同向": GOLD })\
+             .scale(0.7).to_edge(DOWN, LARGE_BUFF)
+        self.play(FadeOut(txt3))
+        self.play(Write(txt4))
+        self.wait(2)
+        self.play(FadeOut(txt4, run_time = 0.3), FadeIn(txt5, UP))
+        self.play(Write(txt6[:6]), txt5.animate.next_to(txt6, UP))
+        self.wait(2)
+        self.play(Write(txt6[6:]))
+        self.wait(2)
+        self.play(*map(FadeOut, (txt5, txt6)))
         # txt01 = Text("在前面，我们通过右手螺旋定则", t2c = { "右手螺旋定则": BLUE })
         # txt02 = Text("知道了通电螺线管的磁场方向", t2c = { "磁场方向": PURPLE }).scale(0.8)
         # g = Group(txt01, txt02).arrange(DOWN)
