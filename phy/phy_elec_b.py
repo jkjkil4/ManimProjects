@@ -293,5 +293,16 @@ class PhyElecB_LineScene(ChapterScene):
         self.wait(3)
         self.play(Write(txt5[6:]))
         
+class PhyElecB_RelChapterScene(ChapterScene):
+    CONFIG = {
+        "str1": "Part 3",
+        "str2": "二者关系"
+    }
+
+class PhyElecB_RelScene(Scene):
+    def construct(self):
+        frame = self.camera.frame
+
+        self.add(txtwatermark().fix_in_frame())
 
         
