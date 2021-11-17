@@ -317,26 +317,43 @@ class PhyElecB_LineChapterScene(ChapterScene):
         "str2": "通电直导线"
     }
 
-class PhyElecB_LineScene(ChapterScene):
+class PhyElecB_LineScene(Scene):
+    CONFIG = {
+        "use_plot_depth": True
+    }
+
     def construct(self):
         frame: CameraFrame = self.camera.frame
         frame.focal_distance = 50
-        frame.set_euler_angles(theta = -PI / 2, phi = -40 * DEGREES)
-        # def frame_updater(frame: CameraFrame, dt):
-        #     frame.set_euler_angles(phi = frame.get_euler_angles()[1] - DEGREES * dt)
-        # frame.add_updater(frame_updater)
+        frame.set_euler_angles(theta = -90 * DEGREES, phi = -40 * DEGREES)
 
         self.add(txtwatermark())
 
-        line = Line(LEFT * 4.5, RIGHT * 4.5).apply_depth_test().shift(DOWN * 0.1)
+        txt1 = Text("对于这根导线", t2c = { "导线": BLUE }).scale(0.8).to_edge(DOWN, 1.2)\
+            .set_stroke(BLACK, width = 5, background = True).fix_in_frame()
+        txt2 = Text("当我们通上电流时", t2c = { "电流": RED }, plot_depth = 100).scale(0.8).to_edge(DOWN, 1.2)\
+            .set_stroke(BLACK, width = 5, background = True).fix_in_frame()
+        txt3 = Text("会在垂直平面形成所示磁场", t2c = { "磁场": PURPLE }, plot_depth = 100).scale(0.7).to_edge(DOWN, 1.2)\
+            .set_stroke(BLACK, width = 5, background = True).fix_in_frame()
+        txt4 = Text("右手螺旋定则同样适用于该磁场环绕方向的判断", t2c = { "右手螺旋定则": BLUE, "环绕方向": BLUE })\
+            .set_stroke(BLACK, width = 5, background = True).scale(0.8).to_edge(DOWN, 1.2).fix_in_frame()
+        txt5 = Text("伸出拇指使其与电流同向", t2c = { "拇指": BLUE, "电流": BLUE, "同向": GOLD })\
+            .set_stroke(BLACK, width = 5, background = True).scale(0.8).to_edge(DOWN, 1.2).fix_in_frame()
+        txt6 = Text("收起其余四指，则该直导线周围磁场环绕直导线的方向，与该四指同向", t2c = { "其余四指": BLUE, "磁场环绕直导线的方向": PURPLE, "同向": GOLD })\
+            .set_stroke(BLACK, width = 5, background = True).scale(0.7).to_edge(DOWN, 1.2).fix_in_frame()
+        txt7 = Text("并且，增大电流可以增强磁场", t2c = { "电流": RED, "增强": GOLD, "磁场": PURPLE })\
+            .set_stroke(BLACK, width = 5, background = True).scale(0.8).to_edge(DOWN, 1.2).fix_in_frame()
+
+        line = Line(LEFT * 4.5, RIGHT * 4.5).apply_depth_test().shift(DOWN * 0.05)
         tip = ArrowTip().set_color(RED).move_to(line.get_right() + LEFT * 0.4)
         texI = Tex("I", color = RED).next_to(tip, DOWN).rotate(-PI / 2)
-        self.play(GrowArrow(line))
-        self.wait(2)
-        self.play(line.animate.set_color(RED), *map(FadeIn, (tip, texI)))
-        self.wait(2)
+        self.play(GrowArrow(line), Write(txt1))
+        self.wait(0.6)
+        self.play(FadeOut(txt1, run_time = 0.3), FadeIn(txt2, UP), line.animate.set_color(RED), *map(FadeIn, (tip, texI)))
+        self.play(Write(txt3), txt2.animate.next_to(txt3, UP))
+        self.wait(0.5)
 
-        rotate_center = LEFT * 0.2 + DOWN * 0.1
+        rotate_center = LEFT * 0.2 + DOWN * 0.05
         def get_circle(buff = 1, path_arc = 70 * DEGREES):
             radius = buff
             rotate_points = (UP * radius, LEFT * radius, DOWN * radius, RIGHT * radius)
@@ -350,6 +367,7 @@ class PhyElecB_LineScene(ChapterScene):
         rotate_arrows_group = VGroup()
         for i in range(5):
             rotate_arrows_group.add(get_circle(2**i, (70 + 25 * i / 5) * DEGREES))
+        rotate_arrows_group[-1].set_stroke(opacity = 0.8)
         try:
             rotate_arrows_group.save_state()
             self.play(Write(rotate_arrows_group))
@@ -357,50 +375,28 @@ class PhyElecB_LineScene(ChapterScene):
             rotate_arrows_group.restore()
             self.add(rotate_arrows_group)
         self.play(
-            frame.animate.set_euler_angles(phi = -55 * DEGREES),
+            frame.animate.set_euler_angles(phi = -10 * DEGREES, gamma = 30 * DEGREES),
             rotate_arrows_group.animate.rotate(-30 * DEGREES, axis = RIGHT),
             run_time = 3)
         self.play(
-            frame.animate.set_euler_angles(phi = -40 * DEGREES),
-            rotate_arrows_group.animate.rotate(-50 * DEGREES, axis = RIGHT),
+            frame.animate.set_euler_angles(phi = -25 * DEGREES, gamma = 0),
+            rotate_arrows_group.animate.rotate(10 * DEGREES, axis = RIGHT),
             run_time = 3)
-        self.wait()
-        self.play(Indicate(texI))
-        self.wait(3)
-
-class PhyElecB_LineSubTextScene(Scene):
-    def construct(self):
-        txt1 = Text("对于这根导线", t2c = { "导线": BLUE }).scale(0.8).to_edge(DOWN, LARGE_BUFF)
-        txt2 = Text("当我们通上电流时", t2c = { "电流": RED }).scale(0.7).to_edge(DOWN, LARGE_BUFF)
-        txt3 = Text("会在垂直平面形成所示磁场", t2c = { "磁场": PURPLE }).scale(0.8).to_edge(DOWN, LARGE_BUFF)
-        self.play(Write(txt1))
+        texIL = Tex("I", color = RED).set_stroke(BLACK, 5, background = True).fix_in_frame().next_to(txt7[:5])
         self.wait(0.5)
-        self.play(txt1.animate.next_to(txt2, UP), Write(txt2))
+        self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (txt2, txt3)), Write(txt4))
         self.wait(0.8)
-        self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (txt1, txt2)), FadeIn(txt3))
-        self.wait(2)
-
-        txt4 = Text("右手螺旋定则同样适用于该磁场环绕方向的判断", t2c = { "右手螺旋定则": BLUE, "环绕方向": BLUE })\
-            .scale(0.8).to_edge(DOWN, LARGE_BUFF)
-        txt5 = Text("伸出拇指使其与电流同向", t2c = { "拇指": BLUE, "电流": BLUE, "同向": GOLD })\
-            .scale(0.8).to_edge(DOWN, LARGE_BUFF)
-        txt6 = Text("收起其余四指，则该直导线周围磁场环绕直导线的方向，与该四指同向", t2c = { "其余四指": BLUE, "磁场环绕直导线的方向": PURPLE, "同向": GOLD })\
-             .scale(0.7).to_edge(DOWN, LARGE_BUFF)
-        self.play(FadeOut(txt3))
-        self.play(Write(txt4))
-        self.wait(2)
-        self.play(FadeOut(txt4, run_time = 0.3), FadeIn(txt5, UP))
+        self.play(FadeOut(txt4, run_time = 0.3), FadeIn(txt5))
         self.play(Write(txt6[:6]), txt5.animate.next_to(txt6, UP))
         self.wait(2)
         self.play(Write(txt6[6:]))
-        self.wait(2)
-        self.play(*map(FadeOut, (txt5, txt6)))
-
-        txt7 = Text("并且，增大电流可以增强磁场", t2c = { "电流": RED, "增强": GOLD, "磁场": PURPLE })\
-            .scale(0.8).to_edge(DOWN, LARGE_BUFF)
-        self.play(FadeIn(txt7, UP))
         self.wait()
-        self.play(FadeOut(txt7))
+        self.play(*map(FadeOut, (txt5, txt6)))
+        self.play(Write(txt7[:5]))
+        self.play(ShowCreation(texIL), run_time = 0.8)
+        self.play(ReplacementTransform(texIL, txt7[5:7]))
+        self.play(Write(txt7[7:]))
+        self.wait(3)
 
 class PhyElecB_RelChapterScene(ChapterScene):
     CONFIG = {
@@ -411,7 +407,21 @@ class PhyElecB_RelChapterScene(ChapterScene):
 class PhyElecB_RelScene(Scene):
     def construct(self):
         frame = self.camera.frame
+        frame.set_euler_angles(theta = 30 * DEGREES, phi = 70 * DEGREES)
+        def frame_updater(frame: CameraFrame, dt):
+            frame.increment_theta(DEGREES * dt)
+        frame.add_updater(frame_updater)
 
         self.add(txtwatermark().fix_in_frame())
 
+        txt1 = Text("对于这个通电的环形导线来说", t2c = { "环形导线": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
+        circle = Circle(radius = 1.5, color = GOLD, n_components = 32).rotate(90 * DEGREES, axis = UP).apply_depth_test()
+        circle.reverse_points()
+        circle.set_points(circle.get_points()[:len(circle.get_points()) - 3])
+        tip1 = ArrowTip(angle = 90 * DEGREES).set_color(RED).move_to(circle.get_edge_center(DOWN)).rotate(89 * DEGREES, axis = RIGHT)
+        tip2 = ArrowTip(angle = 90 * DEGREES).set_color(RED).move_to(circle.get_edge_center(OUT))
+        tip3 = ArrowTip(angle = -90 * DEGREES).set_color(RED).move_to(circle.get_edge_center(UP)).set_opacity(0.5).rotate(89 * DEGREES, axis = RIGHT)
+        tips = VGroup(tip1, tip2, tip3)
+        self.play(ShowCreation(circle))
+        self.play(Write(tips))
         
