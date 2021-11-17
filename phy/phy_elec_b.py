@@ -414,7 +414,7 @@ class PhyElecB_RelScene(Scene):
 
         self.add(txtwatermark().fix_in_frame())
 
-        txt1 = Text("对于这个通电的环形导线来说", t2c = { "环形导线": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
+        txt1 = Text("对于这个通电的环形导线", t2c = { "环形导线": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
         circle = Circle(radius = 1.5, color = GOLD, n_components = 32).rotate(90 * DEGREES, axis = UP).apply_depth_test()
         circle.reverse_points()
         circle.set_points(circle.get_points()[:len(circle.get_points()) - 3])
@@ -423,5 +423,28 @@ class PhyElecB_RelScene(Scene):
         tip3 = ArrowTip(angle = -90 * DEGREES).set_color(RED).move_to(circle.get_edge_center(UP)).set_opacity(0.5).rotate(89 * DEGREES, axis = RIGHT)
         tips = VGroup(tip1, tip2, tip3)
         self.play(ShowCreation(circle))
-        self.play(Write(tips))
+        self.play(Write(tips), Write(txt1))
+        self.wait()
+
+        txt2 = Text("为了得出其四周磁场的分布情况", t2c = { "磁场": PURPLE, "分布情况": BLUE }).scale(0.8).fix_in_frame()
+        txt3 = Text("可以将其看成由许多的直导线细分而成", t2c = { "直导线": BLUE, "细分": GOLD }).scale(0.8).fix_in_frame()
+        Group(txt2, txt3).arrange(DOWN).to_edge(DOWN)
+        def get_div_circle(n, **kwargs):
+            vmobj = VMobject(**kwargs)
+            vmobj.set_points_as_corners([circle.pfp(i / n) for i in range(n + 1)])
+            return vmobj
+        div_circle = get_div_circle(3, color = GOLD_E)
+        self.play(FadeOut(txt1, run_time = 0.3), AnimationGroup(*map(Write, (txt2, txt3)), lag_ratio = 0.6))
+        self.wait()
+        self.play(FadeIn(div_circle))
+        rt1, rt2 = 1.2, 0.1
+        for i in range(4, 15):
+            k = slow_into((i - 4) / 14)
+            rt = rt1 * (1 - k) + rt2 * k
+            self.play(div_circle.animate.become(get_div_circle(i, color = GOLD_E)), run_time = rt)
+        
+        txt4 = Text("对其中的每一小段使用右手螺旋定则", t2c = { "每一小段": BLUE, "右手螺旋定则": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
+        self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (txt2, txt3)), Write(txt4))
+        self.wait(3)
+        # TODO
         
