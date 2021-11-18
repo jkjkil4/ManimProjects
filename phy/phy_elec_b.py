@@ -442,9 +442,22 @@ class PhyElecB_RelScene(Scene):
             k = slow_into((i - 4) / 14)
             rt = rt1 * (1 - k) + rt2 * k
             self.play(div_circle.animate.become(get_div_circle(i, color = GOLD_E)), run_time = rt)
+        self.wait(0.5)
         
         txt4 = Text("对其中的每一小段使用右手螺旋定则", t2c = { "每一小段": BLUE, "右手螺旋定则": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
-        self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (txt2, txt3)), Write(txt4))
-        self.wait(3)
-        # TODO
+        def get_db_dir_line(alpha, zoffset = RIGHT * 0.8):
+            pos = circle.pfp(alpha)
+            direction = np.arctan2(pos[2], pos[1])
+            offset = UP * np.cos(direction) + OUT * np.sin(direction)
+            offset *= 0.3
+            return VGroup(
+                Arrow(pos - offset + zoffset, pos - offset - zoffset, buff = 0), 
+                Arrow(pos + offset - zoffset, pos + offset + zoffset, buff = 0)
+                ).apply_depth_test().set_color(PURPLE)
+        db_dir_lines = VGroup(*[get_db_dir_line(i / 4) for i in range(1, 4)])
+        self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (txt2, txt3, div_circle)), Write(txt4))
+        for db_dir_line in db_dir_lines:
+            self.wait(0.8)
+            self.play(*map(GrowArrow, db_dir_line))
+        
         
