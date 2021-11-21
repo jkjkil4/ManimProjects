@@ -224,6 +224,7 @@ class PhyElecB_CurveScene(Scene):
         btip.tips.rotate(PI)
         self.play(ShowCreation(btip))
         btip.add_updater(btip_updater)
+        self.wait()
         self.play(alpha.animate.set_value(0.1))
         self.play(alpha.animate.set_value(0.4), run_time = 2)
         self.play(alpha.animate.set_value(0.95), run_time = 2.5)
@@ -290,7 +291,7 @@ class PhyElecB_CurveScene(Scene):
 class PhyElecB_CurveSubTextScene(Scene):
     def construct(self):
         txt1 = Text("且在其四周形成所示磁场", t2c = { "其四周": BLUE, "磁场": PURPLE }).scale(0.8).to_edge(DOWN, buff = LARGE_BUFF)
-        txt2 = Text("我们此时引入一个小磁针", t2c = { "小磁针": BLUE }).scale(0.8)
+        txt2 = Text("我们引入一个小磁针", t2c = { "小磁针": BLUE }).scale(0.8)
         txt3 = Text("磁针N极指向与磁场方向一致", t2c = { "磁针N极": RED_B, "方向一致": GOLD }).scale(0.6)
         Group(txt2, txt3).arrange(DOWN).to_edge(DOWN, buff = LARGE_BUFF)
         txt4 = Text("此时的通电螺线(管)相当于一个条形磁铁", t2c = { "通电螺线(管)": BLUE, "条形磁铁": BLUE }).scale(0.8)
@@ -404,12 +405,13 @@ class PhyElecB_RelChapterScene(ChapterScene):
         "str2": "二者关系"
     }
 
-class PhyElecB_RelScene(Scene):
+class PhyElecB_RelScene1(Scene):
     def construct(self):
         frame = self.camera.frame
         frame.set_euler_angles(theta = 30 * DEGREES, phi = 70 * DEGREES)
+        frame_anim_rate = 1
         def frame_updater(frame: CameraFrame, dt):
-            frame.increment_theta(DEGREES * dt)
+            frame.increment_theta(frame_anim_rate * DEGREES * dt)
         frame.add_updater(frame_updater)
 
         self.add(txtwatermark().fix_in_frame())
@@ -455,9 +457,77 @@ class PhyElecB_RelScene(Scene):
                 Arrow(pos + offset - zoffset, pos + offset + zoffset, buff = 0)
                 ).apply_depth_test().set_color(PURPLE)
         db_dir_lines = VGroup(*[get_db_dir_line(i / 4) for i in range(1, 4)])
+        for mobj in db_dir_lines[0]:
+            mobj.rotate(88.5 * DEGREES, axis = RIGHT)
+        for mobj in db_dir_lines[2]:
+            mobj.rotate(88.5 * DEGREES, axis = RIGHT)
         self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (txt2, txt3, div_circle)), Write(txt4))
         for db_dir_line in db_dir_lines:
             self.wait(0.8)
             self.play(*map(GrowArrow, db_dir_line))
+        frame_anim_rate = -1
         
+
+        txt5 = Text("则从总体上来看，其中的磁场方向如图所示", t2c = { "总体": BLUE, "磁场方向": PURPLE }).scale(0.8).to_edge(DOWN).fix_in_frame()
+        arrowCenter = Arrow(RIGHT * 4, LEFT * 4, tip_width_ratio = 8).set_color(PURPLE).apply_depth_test()
+        self.play(FadeOut(txt4, run_time = 0.3), Write(txt5))
+        self.play(AnimationGroup(db_dir_lines.animate.set_opacity(0.5)), GrowArrow(arrowCenter), lag_ratio = 0.4)
+        self.wait(0.8)
+
+        txt5_1 = Text("这实际上就是前面提到的通电螺线管的磁场判定方法", t2c = { "通电螺线管": BLUE, "判定方法": BLUE }).scale(0.8).to_edge(DOWN).fix_in_frame()
+        rect = Rectangle(FRAME_WIDTH, FRAME_HEIGHT, color = YELLOW, stroke_width = 6).scale(0.6).fix_in_frame()
+        self.play(FadeOut(txt5, run_time = 0.3), Write(txt5_1))
+        self.play(FadeIn(rect), run_time = 0.8)
+        self.wait(0.8)
+        self.play(*map(FadeOut, (rect, txt5_1)), run_time = 0.8)
+
+        frame.remove_updater(frame_updater)
+        self.play(
+            *map(FadeOut, (arrowCenter, db_dir_lines)),
+            frame.animate.set_euler_angles(theta = 25 * DEGREES, phi = 35 * DEGREES), 
+            run_time = 2)
+        self.wait(0.5)
+
+        # rotate_center = ORIGIN
+        # c = Circle(color = PURPLE, stroke_width = 6).rotate(-PI / 2)\
+        #     .reverse_points().next_to(rotate_center, UP, 0).stretch(0.8, 1, about_point = rotate_center).shift(UP * 0.8)
+        # circles1 = VGroup(c)
+        # for i in range(1, 3):
+        #     k = i / 3
+        #     pos = rotate_center + UP * 0.8 * (1 - k)
+        #     c = c.copy().stretch(2.8, 0).stretch(3, 1).next_to(pos, UP, 0)
+        #     circles1.add(c)
+        # circles1.apply_depth_test().insert_n_curves(2)
+        # circles2 = circles1.copy().stretch(-1, 1, about_point = rotate_center)
+        # lineCenter = Line(RIGHT * 14, LEFT * 14, color = PURPLE, stroke_width = 6).apply_depth_test()
+        # txt6 = Text("且形成所示磁场", t2c = { "磁场": PURPLE }).scale(0.8).to_edge(DOWN).set_stroke(BLACK, width = 4, background = True).fix_in_frame()
+        # tip = ArrowTip(angle = PI, tip_width_ratio = 8).set_color(PURPLE).shift(LEFT * 3).apply_depth_test()
+        # self.play(*map(lambda m: ShowCreation(m, run_time = 1.6), (circles1, circles2, lineCenter)), FadeIn(txt6))
+        # self.play(FadeIn(tip), run_time = 0.5)
+        # self.play(frame.animate.set_euler_angles(theta = 30 * DEGREES, phi = 42 * DEGREES), run_time = 2)
+        # self.wait(0.5)
+        # self.play(*map(FadeOut, (txt6, tip, circles1, circles2, lineCenter)))
+
+        txt7 = Text("若将多个环形导线连接在一起", t2c = { "环形导线": BLUE, "连接在一起": GOLD })\
+            .scale(0.8).to_edge(DOWN).fix_in_frame()
+        txt8 = Text("就组成了一个螺线管", t2c = { "螺线管": BLUE }).scale(0.7).to_edge(DOWN).fix_in_frame()
+        r_curve = RCurve(height = 6, w = 10.5, step_size = DEGREES, color = GOLD)\
+            .apply_depth_test().rotate(90 * DEGREES, axis = UP).rotate(-90 * DEGREES, axis = LEFT)
+        r_curve.reverse_points()
+        passing = VMobject(color = RED)
+        passing.set_points(r_curve.get_points())
+        self.play(Write(txt7))
+        self.play(
+            Write(txt8), txt7.animate.next_to(txt8, UP),
+            AnimationGroup(frame.animate.set_euler_angles(theta = 30 * DEGREES, phi = 65 * DEGREES), run_time = 2)
+            )
+        frame_anim_rate = 1
+        frame.add_updater(frame_updater)
+        self.play(*map(lambda m: FadeOut(m, run_time = 0.3), (tips, circle)), ShowCreation(r_curve))
+        self.play(ShowPassingFlash(passing), run_time = 1.6)
+        self.play(GrowArrow(arrowCenter.stretch(1.2, 0)))
+        self.wait(2.5)
+
+
+
         
