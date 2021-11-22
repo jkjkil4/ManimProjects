@@ -528,6 +528,59 @@ class PhyElecB_RelScene1(Scene):
         self.play(GrowArrow(arrowCenter.stretch(1.2, 0)))
         self.wait(2.5)
 
+class PhyElecB_RelScene2(Scene):
+    def construct(self):
+        self.add(txtwatermark())
 
+        txt1 = Text("也就是说通过右手螺旋定则", t2c = { "右手螺旋定则": BLUE }).scale(0.8).to_edge(DOWN)
+        txt2 = Text("既可以建立左侧所示的关系，也可以建立右侧所示的关系", t2c = { "左侧": BLUE, "右侧": BLUE }).scale(0.7).to_edge(DOWN)
+        rect1 = Rectangle(FRAME_WIDTH, FRAME_HEIGHT, stroke_width = 6, color = YELLOW).scale(0.35)
+        rect2 = Rectangle(FRAME_WIDTH, FRAME_HEIGHT, stroke_width = 6, color = YELLOW).scale(0.35)
+        Group(rect1, rect2).arrange(buff = LARGE_BUFF).move_to((txt1.get_center() + TOP) / 2)
+        self.play(FadeIn(txt1))
+        self.wait(0.5)
+        self.play(txt1.animate.next_to(txt2, UP), Write(txt2[:12]))
+        self.play(ShowCreation(rect1))
+        self.wait()
+        self.play(Write(txt2[12:]))
+        self.play(ShowCreation(rect2))
+        self.wait(2.5)
+
+class PhyElecB_RelScene2_SubScene1(Scene):
+    CONFIG = {
+        "line_txt": "B",
+        "curve_txt": "I",
+        "line_color": PURPLE,
+        "curve_color": RED
+    }
+    def construct(self):
+        frame = self.camera.frame
+        frame.set_euler_angles(phi = 30 * DEGREES, gamma = 20 * DEGREES).set_width(frame.get_width() * 0.6)
+
+        self.line_tex = Tex(self.line_txt, color = self.line_color)
+        self.curve_tex = Tex(self.curve_txt, color = self.curve_color)
+        self.line = Arrow(IN * 8, OUT * 3.6).set_color(self.line_color).apply_depth_test()
+        self.line.rotate(-90 * DEGREES)
+        radius = 1.4
+        rotate_points = (UP * radius, LEFT * radius, DOWN * radius, RIGHT * radius)
+        self.curve = VGroup()
+        for i in range(len(rotate_points)):
+            arrow = Arrow(rotate_points[i - 1], rotate_points[i], path_arc = 70 * DEGREES).set_color(self.curve_color)
+            self.curve.add(arrow)
+        self.curve.rotate(40 * DEGREES).apply_depth_test()
+
+        self.line_tex.next_to(self.line, RIGHT, aligned_edge = OUT).shift(DOWN * 0.2).rotate(90 * DEGREES, axis = RIGHT)
+        self.curve_tex.next_to(self.curve, RIGHT)
+
+        self.add(self.line_tex, self.curve_tex, self.line, self.curve)
+        self.wait()
+
+class PhyElecB_RelScene2_SubScene2(PhyElecB_RelScene2_SubScene1):
+    CONFIG = {
+        "line_txt": "I",
+        "curve_txt": "B",
+        "line_color": RED,
+        "curve_color": PURPLE
+    }
 
         
