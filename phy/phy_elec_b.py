@@ -211,6 +211,20 @@ class PhyElecB_CurveScene(Scene):
         self.play(*map(Write, (arrowTips1, arrowTips2, arrowTipsCenter)))
         self.wait()
 
+
+        bLeft = Rectangle(color = RED, fill_opacity = 0.7, stroke_width = 0)
+        bLeft.surround(r_curve, buff = 0).stretch(0.4, 1).stretch(0.5, 0, about_point = bLeft.get_left())
+        bRight = bLeft.copy().set_color(BLUE).next_to(bLeft, buff = 0)
+        b = VGroup(bLeft, bRight)
+        txtN = Text("N", color = RED).scale(2).next_to(b, LEFT)
+        txtS = Text("S", color = BLUE).scale(2).next_to(b)
+        self.play(ShowCreation(b))
+        self.wait(0.5)
+        self.play(FadeIn(txtN, RIGHT), FadeIn(txtS, LEFT))
+        self.wait(2.5)
+        self.play(*map(FadeOut, (b, txtN, txtS)))
+        self.wait()
+
         btip = BTip().move_to(circles1[1].get_start())
         alpha = ValueTracker(0)
         target_mobj = circles1[1]
@@ -230,19 +244,8 @@ class PhyElecB_CurveScene(Scene):
         self.play(alpha.animate.set_value(0.95), run_time = 2.5)
         self.play(FadeOut(btip))
 
-        bLeft = Rectangle(color = RED, fill_opacity = 0.7, stroke_width = 0)
-        bLeft.surround(r_curve, buff = 0).stretch(0.4, 1).stretch(0.5, 0, about_point = bLeft.get_left())
-        bRight = bLeft.copy().set_color(BLUE).next_to(bLeft, buff = 0)
-        b = VGroup(bLeft, bRight)
-        txtN = Text("N", color = RED).scale(2).next_to(b, LEFT)
-        txtS = Text("S", color = BLUE).scale(2).next_to(b)
-        self.play(ShowCreation(b))
-        self.wait(0.5)
-        self.play(FadeIn(txtN, RIGHT), FadeIn(txtS, LEFT))
-        self.wait(2.5)
         self.play(
             *map(lambda m: FadeOut(m, run_time = 1), (
-                b, txtN, txtS, 
                 circles1, circles2, lineCenter,
                 arrowTips1, arrowTips2, arrowTipsCenter
                 )),
@@ -291,25 +294,26 @@ class PhyElecB_CurveScene(Scene):
 class PhyElecB_CurveSubTextScene(Scene):
     def construct(self):
         txt1 = Text("且在其四周形成所示磁场", t2c = { "其四周": BLUE, "磁场": PURPLE }).scale(0.8).to_edge(DOWN, buff = LARGE_BUFF)
-        txt2 = Text("我们引入一个小磁针", t2c = { "小磁针": BLUE }).scale(0.8)
-        txt3 = Text("磁针N极指向与磁场方向一致", t2c = { "磁针N极": RED_B, "方向一致": GOLD }).scale(0.6)
+        txt2 = Text("此时的通电螺线(管)相当于一个条形磁铁", t2c = { "通电螺线(管)": BLUE, "条形磁铁": BLUE }).scale(0.8)
+        txt3 = Text("左端为N极，右端为S极", t2c = { "N极": RED, "S极": BLUE }).scale(0.6)
         Group(txt2, txt3).arrange(DOWN).to_edge(DOWN, buff = LARGE_BUFF)
-        txt4 = Text("此时的通电螺线(管)相当于一个条形磁铁", t2c = { "通电螺线(管)": BLUE, "条形磁铁": BLUE }).scale(0.8)
-        txt5 = Text("左端为N极，右端为S极", t2c = { "N极": RED, "S极": BLUE }).scale(0.6)
+        txt4 = Text("我们若引入一个小磁针", t2c = { "小磁针": BLUE }).scale(0.8)
+        txt5 = Text("其磁针N极指向与磁场方向一致", t2c = { "磁针N极": RED_B, "方向一致": GOLD }).scale(0.6)
         Group(txt4, txt5).arrange(DOWN).to_edge(DOWN, buff = LARGE_BUFF)
+        
         self.play(Write(txt1))
         self.wait(2)
         self.play(FadeOut(txt1, run_time = 0.3), Write(txt2))
-        self.wait(2)
-        self.play(txt2.animate.next_to(txt3, UP), FadeIn(txt3, UP))
-        self.wait(2)
+        self.wait(0.5)
+        self.play(FadeIn(txt3, UP))
+        self.wait(1.5)
         self.play(
             *map(lambda m: FadeOut(m, run_time = 0.3), (txt2, txt3)),
             Write(txt4)
             )
-        self.wait(0.5)
-        self.play(FadeIn(txt5, UP))
-        self.wait(1.5)
+        self.wait(2)
+        self.play(txt4.animate.next_to(txt5, UP), FadeIn(txt5, UP))
+        self.wait(2)
         self.play(*map(FadeOut, (txt4, txt5)))
         
 class PhyElecB_LineChapterScene(ChapterScene):
