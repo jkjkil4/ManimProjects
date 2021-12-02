@@ -1,5 +1,7 @@
+import sys
+sys.path.append('.')
 from manimlib import *
-
+from header import *
 
 class PhyEquip(VGroup):
     CONFIG = {
@@ -72,6 +74,8 @@ class PhyArrowEquip(VGroup):
         "grad_fn" : linear,
         "grad_cnt" : 4,
         "grad_half_len" : 0.1,
+        "grad_up": True,
+        "grad_down": True,
         "grad_up_range" : None,
         "grad_down_range" : None,
         "grad_up_step" : None,
@@ -105,7 +109,9 @@ class PhyArrowEquip(VGroup):
             ghl = self.grad_half_len * (1 if i % 10 == 0 else (0.75 if i % 5 == 0 else 0.5))
             xoffset = np.cos(rot) * ghl
             yoffset = np.sin(rot) * ghl
-            self.grads.add(Line([x + xoffset, y + yoffset, 0], [x - xoffset, y - yoffset, 0]).set_stroke(width = self.line_width))
+            start = [x + xoffset, y + yoffset, 0] if self.grad_up else [x, y, 0]
+            end = [x - xoffset, y - yoffset, 0] if self.grad_down else [x, y, 0]
+            self.grads.add(Line(start, end).set_stroke(width = self.line_width))
 
         # 刻度数字
         self.up_nums, self.down_nums = VGroup(), VGroup()
@@ -180,6 +186,28 @@ class PhyMaterialEquip(PhyArrowEquip):
 
         self.add(self.surrounding_rect, self.bottom_rect, self.wire_base, self.wire_base_txt)
 
+class PhyMultiEquip(VGroup):
+    CONFIG = {
+        "box_buff": 0.1
+    }
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.grad_omega = PhyArrowEquip(grad_cnt = 7, grad_down = False, grad_fn = rush_into)
+        grad_omega_sideline = VMobject(stroke_width = 1.6)
+        grad_omega_sideline.set_points_as_corners([RIGHT * 0.1, RIGHT, RIGHT + 0.5 * UR]).scale(0.15)\
+            .next_to(self.grad_omega.arc.get_start(), DL, buff = 0.025)
+        grad_omega_sidetex = Tex("\\Omega").scale(0.3).next_to(grad_omega_sideline.get_points()[1], UP, buff = 0.025)
+        self.grad_omega_side = VGroup(grad_omega_sideline, grad_omega_sidetex)
+
+        vgGrads = VGroup(self.grad_omega, self.grad_omega_side)
+
+        box_width = 2 * (max(-vgGrads.get_left()[0], vgGrads.get_right()[0]) + self.box_buff)
+        box_height = vgGrads.get_height() + 2 * self.box_buff
+        self.box = Rectangle(box_width, box_height).move_to([0, vgGrads.get_center()[1], 0])
+
+        self.add(vgGrads, self.box)
+
 class PhyEquipR(VMobject):
     def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
         super().__init__(**kwargs)
@@ -203,10 +231,13 @@ class PhyElecLine(VMobject):
 
 class PhyHeaderTestScene(Scene):
     def construct(self):
-        mobj = PhyArrowEquip("A", grad_cnt = 4, grad_zero_offset = 1, grad_fn = rush_into).scale(2)
+        mobj = PhyMultiEquip().scale(3)
         self.add(mobj)
-        self.wait(0.5)
-        self.play(mobj.arrow_offset.animate.increment_value(18), run_time = 1.5)
+        
+        # mobj = PhyArrowEquip("A", grad_cnt = 4, grad_zero_offset = 1, grad_fn = rush_into).scale(2)
+        # self.add(mobj)
+        # self.wait(0.5)
+        # self.play(mobj.arrow_offset.animate.increment_value(18), run_time = 1.5)
 
         # self.add(PhyElecLine(UP, DOWN).shift(LEFT * 3), PhyEquipR(), PhyEquipTxt("G").shift(RIGHT * 3).insert_n_curves(8))
 

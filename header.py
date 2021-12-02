@@ -2,6 +2,10 @@ from manimlib import *
 
 defaultFontSize = 36
 
+def try_set(l, key, val):
+    if key not in l:
+        l[key] = val
+
 def watermark():
     return ImageMobject("assets/self.webp", height = 4, opacity = 0.01)
 
