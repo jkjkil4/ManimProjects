@@ -69,6 +69,35 @@ def tangent_direction(mobj, alpha, d_alpha = 1e-6):
 #     def construct(self):
 #         self.add(BTip())
 
+class PhyElecB_PictureScene1(Scene):
+    def construct(self):
+        frame = self.camera.frame
+        frame.set_euler_angles(theta = 12 * DEGREES, phi = 70 * DEGREES)
+
+        r_curve = RCurve(height = 6, w = 10.5, step_size = DEGREES * 2, color = GOLD).reverse_points()\
+            .apply_depth_test().rotate(90 * DEGREES, axis = UP).rotate(-90 * DEGREES, axis = LEFT)
+        rect = Rectangle(FRAME_WIDTH - 5.6, FRAME_HEIGHT - 3.2, stroke_width = 6).fix_in_frame()
+        arrow = Arrow(RIGHT * 4, LEFT * 4).set_color(PURPLE).apply_depth_test()
+
+        self.add(r_curve, rect, arrow)
+
+class PhyElecB_PictureScene2(Scene):
+    def construct(self):
+        frame = self.camera.frame
+        frame.set_euler_angles(theta = 112 * DEGREES, phi = 40 * DEGREES, gamma = 20 * DEGREES)
+
+        iarrow = Arrow(IN * 6, OUT * 3).set_color(RED).apply_depth_test()
+        rotate_arrows = VGroup()
+        radius = 1.5
+        rotate_points = [UP * radius, LEFT * radius, DOWN * radius, RIGHT * radius]
+        for i in range(len(rotate_points)):
+            arrow = Arrow(rotate_points[i - 1], rotate_points[i], path_arc = 70 * DEGREES)\
+                .set_color(PURPLE).apply_depth_test()
+            rotate_arrows.add(arrow)
+        rect = Rectangle(FRAME_WIDTH - 8, FRAME_HEIGHT - 3.2, stroke_width = 6).fix_in_frame()
+
+        self.add(iarrow, rotate_arrows, rect)
+
 class PhyElecB_TitleScene(Scene):
     def construct(self):
         self.add(txtwatermark())
@@ -225,24 +254,21 @@ class PhyElecB_CurveScene(Scene):
         self.play(*map(FadeOut, (b, txtN, txtS)))
         self.wait()
 
-        btip = BTip().move_to(circles1[1].get_start())
-        alpha = ValueTracker(0)
-        target_mobj = circles1[1]
-        def btip_updater(m):
-            m.move_to(target_mobj.pfp(alpha.get_value()))
-            m.tips.restore()
-            direction = tangent_direction(target_mobj, alpha.get_value())
-            m.tips.rotate(np.arctan2(direction[1], direction[0]))
-            m.tips.move_to(m.circle)
-        btip.tips.save_state()
-        btip.tips.rotate(PI)
-        self.play(ShowCreation(btip))
-        btip.add_updater(btip_updater)
+        def get_btip(mobj, alpha):
+            btip = BTip().move_to(mobj.pfp(alpha) + OUT * 0.03)
+            direction = tangent_direction(mobj, alpha)
+            btip.tips.rotate(np.arctan2(direction[1], direction[0])).shift(OUT * 0.01)
+            return btip
+        btips = VGroup(
+            get_btip(circles1[1], 0.02), get_btip(circles1[1], 0.3),
+            get_btip(circles1[1], 0.55),
+            get_btip(circles1[1], 0.75), get_btip(circles1[1], 0.96)
+            )
         self.wait()
-        self.play(alpha.animate.set_value(0.1))
-        self.play(alpha.animate.set_value(0.4), run_time = 2)
-        self.play(alpha.animate.set_value(0.95), run_time = 2.5)
-        self.play(FadeOut(btip))
+        for btip in btips:
+            self.play(FadeIn(btip, scale = 0.8), run_time = 0.8)
+        self.wait()
+        self.play(FadeOut(btips))
 
         self.play(
             *map(lambda m: FadeOut(m, run_time = 1), (
@@ -297,8 +323,8 @@ class PhyElecB_CurveSubTextScene(Scene):
         txt2 = Text("此时的通电螺线(管)相当于一个条形磁铁", t2c = { "通电螺线(管)": BLUE, "条形磁铁": BLUE }).scale(0.8)
         txt3 = Text("左端为N极，右端为S极", t2c = { "N极": RED, "S极": BLUE }).scale(0.6)
         Group(txt2, txt3).arrange(DOWN).to_edge(DOWN, buff = LARGE_BUFF)
-        txt4 = Text("我们若引入一个小磁针", t2c = { "小磁针": BLUE }).scale(0.8)
-        txt5 = Text("其磁针N极指向与磁场方向一致", t2c = { "磁针N极": RED_B, "方向一致": GOLD }).scale(0.6)
+        txt4 = Text("我们若引入小磁针", t2c = { "小磁针": BLUE }).scale(0.8)
+        txt5 = Text("小磁针N极的指向与磁场方向一致", t2c = { "小磁针N极": RED_B, "方向一致": GOLD }).scale(0.6)
         Group(txt4, txt5).arrange(DOWN).to_edge(DOWN, buff = LARGE_BUFF)
         
         self.play(Write(txt1))
@@ -433,7 +459,7 @@ class PhyElecB_RelScene1(Scene):
         self.wait()
 
         txt2 = Text("为了得出其四周磁场的分布情况", t2c = { "磁场": PURPLE, "分布情况": BLUE }).scale(0.8).fix_in_frame()
-        txt3 = Text("可以将其看成由许多的直导线细分而成", t2c = { "直导线": BLUE, "细分": GOLD }).scale(0.8).fix_in_frame()
+        txt3 = Text("可以将其等效为许多段直导线细分而成", t2c = { "直导线": BLUE, "细分": GOLD }).scale(0.8).fix_in_frame()
         Group(txt2, txt3).arrange(DOWN).to_edge(DOWN)
         def get_div_circle(n, **kwargs):
             vmobj = VMobject(**kwargs)
