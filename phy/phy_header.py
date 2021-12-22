@@ -55,11 +55,11 @@ class LinedPhyEquip(VGroup):
 
 class PhyArrowEquip(VGroup):
     class Txt(Text):
-        def __init__(self, txt, **kwargs):
+        def __init__(self, txt):
             super().__init__(txt, font = "Noto Sans Thin")
             self.scale(0.6)
     class NumTxt(Text):
-        def __init__(self, txt, **kwargs):
+        def __init__(self, txt):
             super().__init__(txt, font = "Noto Sans Thin")
             self.scale(0.3)
     
@@ -193,13 +193,30 @@ class PhyMultiEquip(VGroup):
     }
 
     class NumTxt(Text):
-        def __init__(self, txt, **kwargs):
+        def __init__(self, txt):
             super().__init__(txt, font = "Noto Sans Thin")
             self.scale(0.12)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self.grad_omega_side, self.grad_omega_vg_txt, self.grad_omega = vg_grad_omega = self.initOmegaGrads()
+        vgGrads = VGroup(vg_grad_omega)
+
+        box_width = 2 * (max(-vgGrads.get_left()[0], vgGrads.get_right()[0]) + self.box_buff)
+        box_height = vgGrads.get_height() + 2 * self.box_buff
+        self.box = Rectangle(box_width, box_height).move_to([0, vgGrads.get_center()[1], 0])
+
+        self.add(vgGrads, self.box)
+
+    @staticmethod
+    def initOmegaGrads() -> VGroup:
+        '''
+        初始化欧姆表刻度
+        返回包含 grad_omega_side, grad_omega_vg_txt, grad_omega 的 VGroup
+        '''
+
+        # 暴力列举刻度长度
         grad_len_list = (
             1,      # 0
             0, 0, 0, 0,
@@ -231,30 +248,35 @@ class PhyMultiEquip(VGroup):
             0.6, 0.4, 0.6, 0.4,
             1,      # 70
         )
-        self.grad_omega = PhyArrowEquip(
+        grad_omega = PhyArrowEquip(
             grad_cnt = 7, grad_down = False, 
             grad_len_fn = lambda i: grad_len_list[i], 
             grad_fn = rush_into
             )
-        self.grad_omega.grads[26:34].rotate(-0.7 * DEGREES, about_point = ORIGIN)
+        grad_omega.grads[26:34].rotate(-0.7 * DEGREES, about_point = ORIGIN)
+
+        # 刻度侧边物件
+        # 包含"Ω"符号及其线条
         grad_omega_sideline = VMobject(stroke_width = 1.6)
         grad_omega_sideline.set_points_as_corners([LEFT * 0.1, LEFT, LEFT + 0.3 * UL]).scale(0.15)\
-            .next_to(self.grad_omega.arc.get_end(), DR, buff = 0)
+            .next_to(grad_omega.arc.get_end(), DR, buff = 0)
         grad_omega_sidetex = Tex("\\Omega").scale(0.2).next_to(grad_omega_sideline.get_points()[1], UP, buff = 0.025)
-        self.grad_omega_side = VGroup(grad_omega_sideline, grad_omega_sidetex)
-        def create_txt(ind, txtstr, txtclass = self.NumTxt, buff = 0.05):
-            line = self.grad_omega.grads[ind]
+        grad_omega_side = VGroup(grad_omega_sideline, grad_omega_sidetex)
+
+        # 暴力列举刻度数字
+        def create_txt(ind, txtstr, txtclass = PhyMultiEquip.NumTxt, buff = 0.05):
+            line = grad_omega.grads[ind]
             point = line.get_start()
             rad = np.arctan2(point[1] - line.get_end()[1], point[0] - line.get_end()[0]) - PI / 2
             offset = point - line.get_end()
             txt = txtclass(txtstr).move_to(point + buff / np.sqrt(offset[0]**2 + offset[1]**2) * offset)
             txt.rotate(rad)
             return txt
-        self.grad_omega_vg_txt = VGroup(
-            Tex('\\infty').scale(0.15).next_to(self.grad_omega.grads[0].get_center(), DL, buff = 0.02),
-            create_txt(13, '1k', buff = 0.08),
-            create_txt(25, '100', buff = 0.04),
-            create_txt(34, '50', buff = 0.04),
+        grad_omega_vg_txt = VGroup(
+            Tex('\\infty').scale(0.15).next_to(grad_omega.grads[0].get_center(), DL, buff = 0.02),
+            create_txt(13, '1k', buff = 0.09),
+            create_txt(25, '100'),
+            create_txt(34, '50'),
             create_txt(36, '40'),
             create_txt(41, '30'),
             create_txt(46, '20'),
@@ -263,15 +285,10 @@ class PhyMultiEquip(VGroup):
             create_txt(61, '5'),
             create_txt(70, '0')
             )
-        vg_grad_omega = VGroup(self.grad_omega_side, self.grad_omega_vg_txt, self.grad_omega)
+        grad_omega_vg_txt[3].shift(LEFT * 0.01)
+        grad_omega_vg_txt[4].shift(UR * 0.01)
 
-        vgGrads = VGroup(vg_grad_omega)
-
-        box_width = 2 * (max(-vgGrads.get_left()[0], vgGrads.get_right()[0]) + self.box_buff)
-        box_height = vgGrads.get_height() + 2 * self.box_buff
-        self.box = Rectangle(box_width, box_height).move_to([0, vgGrads.get_center()[1], 0])
-
-        self.add(vgGrads, self.box)
+        return VGroup(grad_omega_side, grad_omega_vg_txt, grad_omega)
 
 class PhyEquipR(VMobject):
     def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
