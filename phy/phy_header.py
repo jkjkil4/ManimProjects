@@ -67,6 +67,7 @@ class PhyArrowEquip(VGroup):
         "txtclass" : Txt,
         "numtxtclass" : NumTxt,
         "line_width" : 1,
+        "arrow_enabled": True,
         # arc
         "arc_radius" : 1,
         "arc_rad" : PI / 2,
@@ -117,25 +118,28 @@ class PhyArrowEquip(VGroup):
         # 刻度数字
         self.up_nums, self.down_nums = VGroup(), VGroup()
         if self.grad_up_step != None:
-            self.generate_nums(self.grad_up_range, self.grad_up_step, 1, self.up_nums)
+            self.generate_nums(self.grad_up_range, self.grad_up_step, 1, self.grad_num_buff, self.up_nums)
         if self.grad_down_step != None:
-            self.generate_nums(self.grad_down_range, self.grad_down_step, -1, self.down_nums)
+            self.generate_nums(self.grad_down_range, self.grad_down_step, -1, self.grad_num_buff, self.down_nums)
         
         self.wo_arrow = VGroup(self.txt, self.arc, self.grads, self.up_nums, self.down_nums)
 
-        # 指针
-        self.arrow_offset = ValueTracker(0)
-        self.point = Dot().set_opacity(0)
-        self.arrow = Line().set_color(BLUE).set_stroke(width = self.line_width * 2)
-        def arrow_updater(m: Line):
-            k = (self.arrow_offset.get_value() + self.grad_zero_offset * 10)
-            rot = self.grad_rot(k)
-            fst = self.grads[0].get_center() - self.point.get_center()
-            radius = np.sqrt(fst[0]**2 + fst[1]**2) + self.grad_half_len / 2
-            m.set_points_by_ends(self.point.get_center(), self.point.get_center() + [radius * np.cos(rot), radius * np.sin(rot), 0])
-        self.arrow.add_updater(arrow_updater)
+        self.add(self.wo_arrow)
 
-        self.add(self.wo_arrow, self.point, self.arrow)
+        # 指针
+        if self.arrow_enabled:
+            self.arrow_offset = ValueTracker(0)
+            self.point = Dot().set_opacity(0)
+            self.arrow = Line().set_color(BLUE).set_stroke(width = self.line_width * 2)
+            def arrow_updater(m: Line):
+                k = (self.arrow_offset.get_value() + self.grad_zero_offset * 10)
+                rot = self.grad_rot(k)
+                fst = self.grads[0].get_center() - self.point.get_center()
+                radius = np.sqrt(fst[0]**2 + fst[1]**2) + self.grad_half_len / 2
+                m.set_points_by_ends(self.point.get_center(), self.point.get_center() + [radius * np.cos(rot), radius * np.sin(rot), 0])
+            self.arrow.add_updater(arrow_updater)
+        if self.arrow_enabled:
+            self.add(self.point, self.arrow)
     
     def grad_rot(self, ind):
         return self.arc_start_angle - self.grad_fn(ind / self.grad_total_cnt) * self.arc_rad
@@ -145,13 +149,13 @@ class PhyArrowEquip(VGroup):
             result = result[:len(result) - 2]
         return result
 
-    def generate_nums(self, g_range, step, sign, vg):
+    def generate_nums(self, g_range, step, sign, buff, vg):
         for i in range(g_range[0], g_range[1] + 1):
             rot = self.grad_rot(i * 10)
             direction = RIGHT * np.cos(rot) + UP * np.sin(rot)
             txt = self.numstr(step * (i - self.grad_zero_offset))
             num = self.numtxtclass(txt)
-            num.move_to(direction * (self.arc_radius + sign * (self.grad_half_len + num.get_height() / 2 + self.grad_num_buff)))
+            num.move_to(direction * (self.arc_radius + sign * (self.grad_half_len + num.get_height() / 2 + buff)))
             num.rotate(rot - PI / 2)
             vg.add(num)
 
@@ -201,7 +205,8 @@ class PhyMultiEquip(VGroup):
         super().__init__(**kwargs)
 
         self.grad_omega_side, self.grad_omega_vg_txt, self.grad_omega = vg_grad_omega = self.initOmegaGrads()
-        vgGrads = VGroup(vg_grad_omega)
+        self.grad_DC = vg_grad_DC = self.initDCGrads()
+        vgGrads = VGroup(vg_grad_omega, vg_grad_DC)
 
         box_width = 2 * (max(-vgGrads.get_left()[0], vgGrads.get_right()[0]) + self.box_buff)
         box_height = vgGrads.get_height() + 2 * self.box_buff
@@ -249,7 +254,7 @@ class PhyMultiEquip(VGroup):
             1,      # 70
         )
         grad_omega = PhyArrowEquip(
-            grad_cnt = 7, grad_down = False, 
+            arrow_enabled = False, grad_cnt = 7, grad_down = False, 
             grad_len_fn = lambda i: grad_len_list[i], 
             grad_fn = rush_into
             )
@@ -290,6 +295,34 @@ class PhyMultiEquip(VGroup):
 
         return VGroup(grad_omega_side, grad_omega_vg_txt, grad_omega)
 
+    @staticmethod
+    def initDCGrads():
+        '''
+        初始化直流刻度
+        返回包含 grad_DC_side, grad_DC_vg_txt, grad_DC 的 VGroup
+        '''
+
+        # 刻度
+        grad_DC = PhyArrowEquip(
+            arc_radius = 0.95, numtxtclass = PhyMultiEquip.NumTxt,
+            arrow_enabled = False, grad_cnt = 5, grad_up = False, grad_half_len = 0.05
+            )
+        
+        # 刻度侧边物件
+        grad_DC_sideline = VMobject(stroke_width = 1.6)
+        grad_DC_sideline.set_points_as_corners([LEFT * 0.6, ORIGIN, UR * 0.2]).scale(0.15)\
+            .next_to(grad_DC.arc.get_start(), DL, buff = 0)
+        grad_DC_sidetex = Tex("\\bar{\\tilde{}}").scale(0.4).next_to(grad_DC_sideline.get_points()[1], DOWN, buff = 0.025)
+        grad_DC_side = VGroup(grad_DC_sideline, grad_DC_sidetex)
+        
+        # 刻度文字
+        grad_DC_vg_txt = VGroup(VGroup(), VGroup(), VGroup())
+        grad_DC.generate_nums((0, 5), 50, -1, 0.02, grad_DC_vg_txt[0])
+        grad_DC.generate_nums((0, 5), 10, -1, 0.08, grad_DC_vg_txt[1])
+        grad_DC.generate_nums((0, 5), 2, -1, 0.14, grad_DC_vg_txt[2])
+
+        return VGroup(grad_DC_side, grad_DC_vg_txt, grad_DC)
+
 class PhyEquipR(VMobject):
     def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
         super().__init__(**kwargs)
@@ -328,4 +361,4 @@ class PhyHeaderTestScene(Scene):
         # self.wait(0.5)
         # self.play(mobj.arrow_offset.animate.increment_value(22), run_time = 1.5)
         # self.wait(0.5)
-        
+
