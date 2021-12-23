@@ -205,14 +205,17 @@ class PhyMultiEquip(VGroup):
         super().__init__(**kwargs)
 
         self.grad_omega_side, self.grad_omega_vg_txt, self.grad_omega = vg_grad_omega = self.initOmegaGrads()
-        self.grad_DC = vg_grad_DC = self.initDCGrads()
-        vgGrads = VGroup(vg_grad_omega, vg_grad_DC)
+        self.grad_DC_side, self.grad_DC_vg_txt, self.grad_DC = vg_grad_DC = self.initDCGrads()
+        self.grad_AC_side, self.grad_AC_vg_txt, self.grad_AC = vg_grad_AC = self.initACGrads()
+        vgGrads = VGroup(vg_grad_omega, vg_grad_DC, vg_grad_AC)
+
+        self.tex = Tex("\\rm A-V-\\Omega").scale(0.2).shift(UP * 0.4)
 
         box_width = 2 * (max(-vgGrads.get_left()[0], vgGrads.get_right()[0]) + self.box_buff)
         box_height = vgGrads.get_height() + 2 * self.box_buff
         self.box = Rectangle(box_width, box_height).move_to([0, vgGrads.get_center()[1], 0])
 
-        self.add(vgGrads, self.box)
+        self.add(vgGrads, self.tex, self.box)
 
     @staticmethod
     def initOmegaGrads() -> VGroup:
@@ -322,6 +325,51 @@ class PhyMultiEquip(VGroup):
         grad_DC.generate_nums((0, 5), 2, -1, 0.14, grad_DC_vg_txt[2])
 
         return VGroup(grad_DC_side, grad_DC_vg_txt, grad_DC)
+
+    @staticmethod
+    def initACGrads():
+        '''
+        初始化交流刻度
+        返回包含 grad_AC_side, grad_AC_vg_txt, grad_AC 的 VGroup
+        '''
+
+        # 刻度
+        grad_AC = PhyArrowEquip(
+            arc_radius = 0.7,
+            arrow_enabled = False, grad_cnt = 4, grad_up = False, grad_half_len = 0.05,
+            grad_fn = lambda t: t**1.05
+            )
+        
+        # 刻度侧边物件
+        grad_AC_sideline = VGroup(stroke_width = 1.6)
+        grad_AC_sideline.set_points_as_corners([UR * 0.16, ORIGIN, LEFT * 0.6, DL * 0.6]).scale(0.15)\
+            .next_to(grad_AC.arc.get_start(), DL, buff = 0)
+        grad_AC_sidetex = Tex("", "\\rm V", "\\sim").scale(0.15)
+        grad_AC_sidetex[1].stretch(0.5, 1).next_to(grad_AC_sidetex[0], DOWN, buff = 0.02)
+        grad_AC_sidetex.next_to(grad_AC_sideline.get_points()[4], DOWN, buff = 0.025)
+        grad_AC_side = VGroup(grad_AC_sideline, grad_AC_sidetex)
+        
+        # 暴力列举刻度数字
+        def create_txt(ind, txtstr, txtclass = PhyMultiEquip.NumTxt, buff = 0.09):
+            line = grad_AC.grads[ind]
+            point = line.get_end()
+            rad = np.arctan2(line.get_start()[1] - point[1], line.get_start()[0] - point[0]) - PI / 2
+            offset = point - line.get_start()
+            txt = txtclass(txtstr).move_to(line.get_start() + buff / np.sqrt(offset[0]**2 + offset[1]**2) * offset)
+            txt.rotate(rad)
+            return txt
+        grad_AC_vg_txt = VGroup(
+            create_txt(0, '0'),
+            create_txt(5, '0.5'),
+            create_txt(10, '1'),
+            create_txt(20, '1.5'),
+            create_txt(30, '2'),
+            create_txt(40, '2.5')
+            )
+        grad_AC_vg_txt[3].shift(LEFT * 0.01)
+        grad_AC_vg_txt[4].shift(UR * 0.01)
+
+        return VGroup(grad_AC_side, grad_AC_vg_txt, grad_AC)
 
 class PhyEquipR(VMobject):
     def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
