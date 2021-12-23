@@ -228,14 +228,51 @@ class PhyMultiEquip(VGroup):
         self.arrow.add_updater(arrow_updater)
 
         # 刻度下方Tex
-        self.tex = Tex("\\rm A-V-\\Omega").scale(0.2).shift(UP * 0.4)
+        self.tex = Tex("\\rm A-V-\\Omega").scale(0.2).shift(UP * 0.35)
 
-        # 刻度外框
+        # 表盘外框
         box_width = 2 * (max(-vgGrads.get_left()[0], vgGrads.get_right()[0]) + self.box_buff)
         box_height = vgGrads.get_height() + 2 * self.box_buff
         self.box = Rectangle(box_width, box_height).move_to([0, vgGrads.get_center()[1], 0])
+        self.box.stretch(1.098, 1, about_point = self.box.get_top())
 
-        self.add(vgGrads, self.arrow, self.tex, self.box)
+        # 机械调零旋钮
+        mech_knob_radius = 0.05
+        self.mech_knob = VGroup(
+            Circle(radius = mech_knob_radius, stroke_color = WHITE), 
+            Line(LEFT * mech_knob_radius, RIGHT * mech_knob_radius)
+            )
+
+        # 表盘底框
+        self.cover = VMobject()
+        self.cover.set_points_as_corners([
+            self.box.get_corner(DL), self.box.get_corner(DR), 
+            self.box.get_corner(DR) + DOWN * 0.15, self.box.get_corner(DL) + DOWN * 0.15,
+            self.box.get_corner(DL)
+            ])
+        self.cover.data["points"][-5] += DOWN * 0.2
+
+        #
+        vgSelects = VGroup(Circle(radius = 1))
+
+
+        # 选择外框
+        pfp1 = self.cover.pfp(0.51)
+        pfp2 = self.cover.pfp(0.955)
+        bottom = vgSelects.get_bottom()
+        self.bottom_box = VMobject()
+        self.bottom_box.set_points_as_corners([
+            pfp1, [pfp1[0], bottom[1], 0] + DOWN * 0.1,
+            [pfp2[0], bottom[1], 0] + DOWN * 0.1, pfp2
+            ])
+
+        self.add(
+            vgGrads, 
+            self.point, self.arrow, 
+            self.tex, 
+            self.box, self.mech_knob, self.cover, 
+            vgSelects, self.bottom_box
+            )
 
     @staticmethod
     def initOmegaGrads() -> VGroup:
@@ -327,7 +364,7 @@ class PhyMultiEquip(VGroup):
 
         # 刻度
         grad_DC = PhyArrowEquip(
-            arc_radius = 0.95, numtxtclass = PhyMultiEquip.NumTxt,
+            arc_radius = 0.92, numtxtclass = PhyMultiEquip.NumTxt,
             arrow_enabled = False, grad_cnt = 5, grad_up = False, grad_half_len = 0.05
             )
         
@@ -355,7 +392,7 @@ class PhyMultiEquip(VGroup):
 
         # 刻度
         grad_AC = PhyArrowEquip(
-            arc_radius = 0.7,
+            arc_radius = 0.64,
             arrow_enabled = False, grad_cnt = 4, grad_up = False, grad_half_len = 0.05,
             grad_fn = lambda t: t**1.05
             )
@@ -416,6 +453,7 @@ class PhyHeaderTestScene(Scene):
     def construct(self):
         mobj = PhyMultiEquip().scale(3)
         self.add(mobj)
+        self.play(mobj.arrow_offset.animate.set_value(1), run_time = 3)
         
         # mobj = PhyArrowEquip("A", grad_cnt = 4, grad_zero_offset = 1, grad_fn = rush_into).scale(2)
         # self.add(mobj)
