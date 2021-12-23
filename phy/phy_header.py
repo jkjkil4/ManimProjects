@@ -1,3 +1,4 @@
+from numbers import Number
 import sys
 sys.path.append('.')
 from manimlib import *
@@ -193,7 +194,9 @@ class PhyMaterialEquip(PhyArrowEquip):
 
 class PhyMultiEquip(VGroup):
     CONFIG = {
-        "box_buff": 0.1
+        "line_width" : 1,
+        "box_buff": 0.1,
+        "arrow_fn": linear
     }
 
     class NumTxt(Text):
@@ -204,18 +207,35 @@ class PhyMultiEquip(VGroup):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        # 刻度
         self.grad_omega_side, self.grad_omega_vg_txt, self.grad_omega = vg_grad_omega = self.initOmegaGrads()
         self.grad_DC_side, self.grad_DC_vg_txt, self.grad_DC = vg_grad_DC = self.initDCGrads()
         self.grad_AC_side, self.grad_AC_vg_txt, self.grad_AC = vg_grad_AC = self.initACGrads()
         vgGrads = VGroup(vg_grad_omega, vg_grad_DC, vg_grad_AC)
 
+        # 指针
+        self.arrow_offset = ValueTracker(0)
+        self.point = Dot().set_opacity(0)
+        self.arrow = Line().set_color(BLUE).set_stroke(width = self.line_width * 2)
+        def arrow_updater(m: Line):
+            k = self.arrow_offset.get_value()
+            rot1 = 0.75 * PI
+            rot2 = 0.25 * PI
+            rot = (1 - k) * rot1 + k * rot2
+            fst = self.grad_omega.grads[0].get_start() - self.point.get_center()
+            radius = np.sqrt(fst[0]**2 + fst[1]**2) + self.grad_omega.grad_half_len / 2
+            m.set_points_by_ends(self.point.get_center(), self.point.get_center() + [radius * np.cos(rot), radius * np.sin(rot), 0])
+        self.arrow.add_updater(arrow_updater)
+
+        # 刻度下方Tex
         self.tex = Tex("\\rm A-V-\\Omega").scale(0.2).shift(UP * 0.4)
 
+        # 刻度外框
         box_width = 2 * (max(-vgGrads.get_left()[0], vgGrads.get_right()[0]) + self.box_buff)
         box_height = vgGrads.get_height() + 2 * self.box_buff
         self.box = Rectangle(box_width, box_height).move_to([0, vgGrads.get_center()[1], 0])
 
-        self.add(vgGrads, self.tex, self.box)
+        self.add(vgGrads, self.arrow, self.tex, self.box)
 
     @staticmethod
     def initOmegaGrads() -> VGroup:
