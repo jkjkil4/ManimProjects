@@ -246,20 +246,24 @@ class PhyMultiEquip(VGroup):
             )
 
         # 表盘底框
-        self.cover = VMobject()
-        self.cover.set_points_as_corners([
-            self.box.get_corner(DL), self.box.get_corner(DR), 
-            self.box.get_corner(DR) + DOWN * 0.15, self.box.get_corner(DL) + DOWN * 0.15,
-            self.box.get_corner(DL)
+        coverCurve = VMobject()
+        coverCurve.set_points([
+            self.box.get_corner(DR) + DOWN * 0.15,
+            self.box.get_bottom() + DOWN * 0.35,
+            self.box.get_corner(DL) + DOWN * 0.15
             ])
-        self.cover.data["points"][-5] += DOWN * 0.2
+        self.cover = VGroup(
+            Line(self.box.get_corner(DL), self.box.get_corner(DL) + DOWN * 0.15),
+            Line(self.box.get_corner(DR), self.box.get_corner(DR) + DOWN * 0.15),
+            coverCurve
+            )
 
         # 选择转盘
         vgSelects = self.initSelects().scale(0.4).align_to(self.cover.get_bottom(), UP)
 
         # 选择外框
-        pfp1 = self.cover.pfp(0.505)
-        pfp2 = self.cover.pfp(0.746)
+        pfp1 = coverCurve.pfp(0.02)
+        pfp2 = coverCurve.pfp(0.98)
         bottom = vgSelects.get_bottom()
         self.bottom_box = VMobject()
         self.bottom_box.set_points_as_corners([
@@ -436,7 +440,10 @@ class PhyMultiEquip(VGroup):
         '''
 
         # 圆环
-        circle = Circle(color = WHITE)
+        circle_radius = 0.8
+        circle1 = Circle(color = WHITE, radius = circle_radius, stroke_width = 3)
+        circle2 = Circle(color = GREY, radius = 0.9 * circle_radius)
+        circle = VGroup(circle1, circle2)
         
         # 指针
         arrow_body = VMobject(color = BLUE_A)
@@ -446,17 +453,17 @@ class PhyMultiEquip(VGroup):
         arrow_body.add_points_as_corners([arc2[0]])
         arrow_body.append_points(arc2)
         arrow_body.add_points_as_corners([arc1[0]])
-        arrow_body.scale(0.95)
-        arrow_tip = Line(RIGHT * 0.6, RIGHT * 0.95, color = BLUE_A)
+        arrow_body.scale(0.9 * circle_radius)
+        arrow_tip = Line(RIGHT * 0.6 * circle_radius, RIGHT * 0.9 * circle_radius, color = BLUE_A)
         arrow = VGroup(arrow_body, arrow_tip)
 
         # 挡位
         vgSelectsSwitchLines = VGroup()
         for i in range(PhyMultiEquip.SWITCH_CNT):
             angle = i * PhyMultiEquip.SWITCH_PER_ANGLE
-            x, y = np.cos(angle), np.sin(angle)
+            x, y = np.cos(angle) * circle_radius, np.sin(angle) * circle_radius
             pos = np.array([x, y, 0])
-            vgSelectsSwitchLines.add(Line(pos * 1.08, pos * 1.2))
+            vgSelectsSwitchLines.add(Line(pos * 1.08, pos * 1.2, stroke_width = 3))
         left = vgSelectsSwitchLines.get_left()
         right = vgSelectsSwitchLines.get_right()
         top = vgSelectsSwitchLines.get_top()
@@ -502,6 +509,7 @@ class PhyMultiEquip(VGroup):
             line: Line = vgSelectsSwitchLines[i]
             txt = PhyMultiEquip.NumTxt(txtstr).scale(3)
             vgSelectsSwitchTxtsTop.add(txt.next_to(line.get_end(), TOP, 0.02))
+        vgSelectsSwitchTxtsTop[1].shift(RIGHT * 0.04)
         vgSelectsSwitchTxtsBottom = VGroup()
         for i, txtstr in zip((11, 12, 13, 14, 15), ('2.5', '10', '50', '250', '500')):
             line: Line = vgSelectsSwitchLines[i]
@@ -512,8 +520,34 @@ class PhyMultiEquip(VGroup):
             vgSelectsSwitchTxtsRight, vgSelectsSwitchTxtsLeft,
             vgSelectsSwitchTxtsTop, vgSelectsSwitchTxtsBottom
             )
+
+        # 交流电压相关线条和文字
+        line_AC = Line(vgSelectsSwitchTxtsRight.get_corner(UR) + UR * 0.05, vgSelectsSwitchTxtsRight.get_corner(DR) + DR * 0.05, stroke_width = 3)
+        tex_AC = Tex("\\rm V", "\\sim")
+        tex_AC[1].next_to(tex_AC[0], DOWN, SMALL_BUFF)
+        tex_AC.scale(0.5).next_to(line_AC, UL, SMALL_BUFF)
+        vgAC = VGroup(line_AC, tex_AC)
+        # 欧姆相关线条和文字
+        line_omega = VMobject(stroke_width = 3)
+        start = vgSelectsSwitchTxtsTop.get_corner(UL) + UL * 0.05
+        end = vgSelectsSwitchTxtsTop.get_corner(UR) + UR * 0.05
+        line_omega.set_points_as_corners([start + DOWN * 0.05 + LEFT * 0.02, start, end, end + DOWN * 0.05 + RIGHT * 0.02])
+        tex_omega = Tex("\\Omega").scale(0.5).next_to(line_omega, LEFT, SMALL_BUFF)
+        vgOmega = VGroup(line_omega, tex_omega)
+        # 直流电流相关线条和文字
+        vgTxtDCA = vgSelectsSwitchTxtsLeft[1:]
+        line_DCA = Line(vgTxtDCA.get_corner(UL) + UL * 0.05, vgTxtDCA.get_corner(DL) + DL * 0.05, stroke_width = 3)
+        tex_DCA = Tex("\\rm \\underline{mA}").scale(0.5).next_to(line_DCA, DOWN, SMALL_BUFF, LEFT)
+        vgDCA = VGroup(line_DCA, tex_DCA)
+        # 直流电压相关线条和文字
+        line_DCV = Line(vgSelectsSwitchTxtsBottom.get_corner(DL) + DL * 0.05, vgSelectsSwitchTxtsBottom.get_corner(DR) + DR * 0.05, stroke_width = 3)
+        tex_DCV = Tex("\\rm \\underline V").scale(0.5).next_to(line_DCV, RIGHT, SMALL_BUFF, DOWN)
+        vgDCV = VGroup(line_DCV, tex_DCV)
+
+        # 相关线条和文字
+        vgLinesAndTexs = VGroup(vgAC, vgOmega, vgDCA, vgDCV)
         
-        return VGroup(circle, arrow, vgSelectsSwitchLines, vgSelectsSwitchTxts)
+        return VGroup(circle, arrow, vgSelectsSwitchLines, vgSelectsSwitchTxts, vgLinesAndTexs)
 
 class PhyEquipR(VMobject):
     def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
