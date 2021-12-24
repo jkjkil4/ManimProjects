@@ -252,9 +252,8 @@ class PhyMultiEquip(VGroup):
             ])
         self.cover.data["points"][-5] += DOWN * 0.2
 
-        #
-        vgSelects = VGroup(Circle(radius = 1))
-
+        # 选择转盘
+        vgSelects = self.initSelects().scale(0.4).align_to(self.cover.get_bottom(), UP)
 
         # 选择外框
         pfp1 = self.cover.pfp(0.51)
@@ -428,6 +427,27 @@ class PhyMultiEquip(VGroup):
 
         return VGroup(grad_AC_side, grad_AC_vg_txt, grad_AC)
 
+    @staticmethod
+    def initSelects():
+        '''
+        初始化选择转盘
+        '''
+
+        circle = Circle(color = WHITE)
+        
+        arrow_body = VMobject(color = BLUE_A)
+        arc1 = Arc.create_quadratic_bezier_points(10 * DEGREES, -5 * DEGREES)
+        arc2 = Arc.create_quadratic_bezier_points(18 * DEGREES, 171 * DEGREES)
+        arrow_body.set_points(arc1)
+        arrow_body.add_points_as_corners([arc1[-1], arc2[0]])
+        arrow_body.append_points(arc2)
+        arrow_body.add_points_as_corners([arc2[-1], arc1[0]])
+        arrow_body.scale(0.95)
+        arrow_tip = Line(RIGHT * 0.6, RIGHT * 0.95, color = BLUE_A)
+        arrow = VGroup(arrow_body, arrow_tip)
+
+        return VGroup(circle, arrow)
+
 class PhyEquipR(VMobject):
     def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
         super().__init__(**kwargs)
@@ -453,7 +473,7 @@ class PhyHeaderTestScene(Scene):
     def construct(self):
         mobj = PhyMultiEquip().scale(3)
         self.add(mobj)
-        self.play(mobj.arrow_offset.animate.set_value(1), run_time = 3)
+        # self.play(mobj.arrow_offset.animate.set_value(1), run_time = 3)
         
         # mobj = PhyArrowEquip("A", grad_cnt = 4, grad_zero_offset = 1, grad_fn = rush_into).scale(2)
         # self.add(mobj)
