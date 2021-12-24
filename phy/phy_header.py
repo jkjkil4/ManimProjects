@@ -198,6 +198,8 @@ class PhyMultiEquip(VGroup):
         "box_buff": 0.1,
         "arrow_fn": linear
     }
+    SWITCH_CNT = 18
+    SWITCH_PER_ANGLE = TAU / SWITCH_CNT
 
     class NumTxt(Text):
         def __init__(self, txt):
@@ -256,8 +258,8 @@ class PhyMultiEquip(VGroup):
         vgSelects = self.initSelects().scale(0.4).align_to(self.cover.get_bottom(), UP)
 
         # 选择外框
-        pfp1 = self.cover.pfp(0.51)
-        pfp2 = self.cover.pfp(0.955)
+        pfp1 = self.cover.pfp(0.505)
+        pfp2 = self.cover.pfp(0.746)
         bottom = vgSelects.get_bottom()
         self.bottom_box = VMobject()
         self.bottom_box.set_points_as_corners([
@@ -433,20 +435,85 @@ class PhyMultiEquip(VGroup):
         初始化选择转盘
         '''
 
+        # 圆环
         circle = Circle(color = WHITE)
         
+        # 指针
         arrow_body = VMobject(color = BLUE_A)
-        arc1 = Arc.create_quadratic_bezier_points(10 * DEGREES, -5 * DEGREES)
+        arc1 = Arc.create_quadratic_bezier_points(8 * DEGREES, -4 * DEGREES)
         arc2 = Arc.create_quadratic_bezier_points(18 * DEGREES, 171 * DEGREES)
         arrow_body.set_points(arc1)
-        arrow_body.add_points_as_corners([arc1[-1], arc2[0]])
+        arrow_body.add_points_as_corners([arc2[0]])
         arrow_body.append_points(arc2)
-        arrow_body.add_points_as_corners([arc2[-1], arc1[0]])
+        arrow_body.add_points_as_corners([arc1[0]])
         arrow_body.scale(0.95)
         arrow_tip = Line(RIGHT * 0.6, RIGHT * 0.95, color = BLUE_A)
         arrow = VGroup(arrow_body, arrow_tip)
 
-        return VGroup(circle, arrow)
+        # 挡位
+        vgSelectsSwitchLines = VGroup()
+        for i in range(PhyMultiEquip.SWITCH_CNT):
+            angle = i * PhyMultiEquip.SWITCH_PER_ANGLE
+            x, y = np.cos(angle), np.sin(angle)
+            pos = np.array([x, y, 0])
+            vgSelectsSwitchLines.add(Line(pos * 1.08, pos * 1.2))
+        left = vgSelectsSwitchLines.get_left()
+        right = vgSelectsSwitchLines.get_right()
+        top = vgSelectsSwitchLines.get_top()
+        bottom = vgSelectsSwitchLines.get_bottom()
+        # 调整左右挡位线条
+        for i in (-2, -1, 1, 2):
+            line: Line = vgSelectsSwitchLines[i]
+            line.add_points_as_corners([np.array([right[0], line.get_end()[1], 0])])
+        for i in (7, 8, 10):
+            line: Line = vgSelectsSwitchLines[i]
+            line.add_points_as_corners([np.array([left[0], line.get_end()[1], 0])])
+        # 调整上下挡位线条
+        line = vgSelectsSwitchLines[3]
+        line.scale(2, about_point = line.get_start())
+        line = vgSelectsSwitchLines[6]
+        line.scale(2, about_point = line.get_start())
+        for i in (3, 6):
+            line: Line = vgSelectsSwitchLines[i]
+            line.add_points_as_corners([np.array([line.get_end()[0], top[1], 0])])
+        line = vgSelectsSwitchLines[11]
+        line.scale(2.5, about_point = line.get_start())
+        line = vgSelectsSwitchLines[12]
+        line.scale(2, about_point = line.get_start())
+        line = vgSelectsSwitchLines[15]
+        line.scale(2, about_point = line.get_start())
+        for i in (11, 12, 15):
+            line: Line = vgSelectsSwitchLines[i]
+            line.add_points_as_corners([np.array([line.get_end()[0], bottom[1], 0])])
+        # 左右挡位文字
+        vgSelectsSwitchTxtsRight = VGroup()
+        for i, txtstr in zip((2, 1, 0, -1, -2), ('2.5', '10', '50', '250', '500')):
+            line: Line = vgSelectsSwitchLines[i]
+            txt = PhyMultiEquip.NumTxt(txtstr).scale(3)
+            vgSelectsSwitchTxtsRight.add(txt.next_to(line.get_end(), RIGHT, 0.05))
+        vgSelectsSwitchTxtsLeft = VGroup()
+        for i, txtstr in zip((7, 8, 9, 10, 11), ('OFF', '250', '25', '2.5')):
+            line: Line = vgSelectsSwitchLines[i]
+            txt = PhyMultiEquip.NumTxt(txtstr).scale(3)
+            vgSelectsSwitchTxtsLeft.add(txt.next_to(line.get_end(), LEFT, 0.05))
+        # 上下挡位文字
+        vgSelectsSwitchTxtsTop = VGroup()
+        for i, txtstr in zip((3, 4, 5, 6), ('x1', 'x10', 'x100', 'x1k')):
+            line: Line = vgSelectsSwitchLines[i]
+            txt = PhyMultiEquip.NumTxt(txtstr).scale(3)
+            vgSelectsSwitchTxtsTop.add(txt.next_to(line.get_end(), TOP, 0.02))
+        vgSelectsSwitchTxtsBottom = VGroup()
+        for i, txtstr in zip((11, 12, 13, 14, 15), ('2.5', '10', '50', '250', '500')):
+            line: Line = vgSelectsSwitchLines[i]
+            txt = PhyMultiEquip.NumTxt(txtstr).scale(3)
+            vgSelectsSwitchTxtsBottom.add(txt.next_to(line.get_end(), DOWN, 0.05))
+        # 挡位文字
+        vgSelectsSwitchTxts = VGroup(
+            vgSelectsSwitchTxtsRight, vgSelectsSwitchTxtsLeft,
+            vgSelectsSwitchTxtsTop, vgSelectsSwitchTxtsBottom
+            )
+        
+        return VGroup(circle, arrow, vgSelectsSwitchLines, vgSelectsSwitchTxts)
 
 class PhyEquipR(VMobject):
     def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
@@ -473,7 +540,7 @@ class PhyHeaderTestScene(Scene):
     def construct(self):
         mobj = PhyMultiEquip().scale(3)
         self.add(mobj)
-        # self.play(mobj.arrow_offset.animate.set_value(1), run_time = 3)
+        self.play(mobj.arrow_offset.animate.set_value(1))
         
         # mobj = PhyArrowEquip("A", grad_cnt = 4, grad_zero_offset = 1, grad_fn = rush_into).scale(2)
         # self.add(mobj)
