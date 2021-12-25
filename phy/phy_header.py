@@ -224,7 +224,7 @@ class PhyMultiEquip(VGroup):
             rot1 = 0.75 * PI
             rot2 = 0.25 * PI
             rot = (1 - k) * rot1 + k * rot2
-            fst = self.grad_omega.grads[0].get_start() - self.point.get_center()
+            fst = self.grad_omega.grads[0].get_center() - self.point.get_center()
             radius = np.sqrt(fst[0]**2 + fst[1]**2) + self.grad_omega.grad_half_len / 2
             m.set_points_by_ends(self.point.get_center(), self.point.get_center() + [radius * np.cos(rot), radius * np.sin(rot), 0])
         self.arrow.add_updater(arrow_updater)
@@ -456,6 +456,7 @@ class PhyMultiEquip(VGroup):
         arrow_body.scale(0.9 * circle_radius)
         arrow_tip = Line(RIGHT * 0.6 * circle_radius, RIGHT * 0.9 * circle_radius, color = BLUE_A)
         arrow = VGroup(arrow_body, arrow_tip)
+        arrow.rotate(PhyMultiEquip.SWITCH_PER_ANGLE * 7)
 
         # 挡位
         vgSelectsSwitchLines = VGroup()
@@ -524,7 +525,7 @@ class PhyMultiEquip(VGroup):
         # 交流电压相关线条和文字
         line_AC = Line(vgSelectsSwitchTxtsRight.get_corner(UR) + UR * 0.05, vgSelectsSwitchTxtsRight.get_corner(DR) + DR * 0.05, stroke_width = 3)
         tex_AC = Tex("\\rm V", "\\sim")
-        tex_AC[1].next_to(tex_AC[0], DOWN, SMALL_BUFF)
+        tex_AC[1].stretch(0.7, 1).next_to(tex_AC[0], DOWN, SMALL_BUFF)
         tex_AC.scale(0.5).next_to(line_AC, UL, SMALL_BUFF)
         vgAC = VGroup(line_AC, tex_AC)
         # 欧姆相关线条和文字
