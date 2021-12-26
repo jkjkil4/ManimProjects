@@ -1,5 +1,7 @@
 from numbers import Number
 import sys
+
+from numpy import inner
 sys.path.append('.')
 from manimlib import *
 from header import *
@@ -259,16 +261,33 @@ class PhyMultiEquip(VGroup):
             )
 
         # 选择转盘
-        vgSelects = self.initSelects().scale(0.4).align_to(self.cover.get_bottom(), UP)
+        selects = self.initSelects().scale(0.4).align_to(coverCurve.pfp(0.5), UP).shift(DOWN * 0.03)
+        self.selects_arrow = selects[1]
+        # 欧姆调零旋钮
+        self.omega_knob = self.initOmegaKnob().scale(0.06)
+        arc1 = Arc(PI / 2 + 35 * DEGREES, 55 * DEGREES).add_tip().scale(0.1, about_point = ORIGIN)
+        arc2 = Arc(PI / 2 - 35 * DEGREES, -55 * DEGREES).add_tip().scale(0.1, about_point = ORIGIN)
+        omega_tex = Tex("\\Omega").scale(0.2).next_to(self.omega_knob, UP, buff = 0.02)
+        vgOmegaKnob = VGroup(self.omega_knob, arc1, arc2, omega_tex)
+        # 表笔插孔
+        socket1, socket2 = self.initSocket().scale(0.05), self.initSocket().scale(0.05)
+        socket1Txt, socket2Txt = self.NumTxt('+'), self.NumTxt('-')
+        # 右侧
+        vgRight = VGroup(vgOmegaKnob, socket1, socket2).arrange(DOWN, buff = 0.19)
+        vgRight.add(socket1Txt.next_to(socket1, LEFT, 0.05))
+        vgRight.add(socket2Txt.next_to(socket2, LEFT, 0.05))
+        vgRight.next_to(selects, buff = SMALL_BUFF)
+        # 底部
+        vgBottom = VGroup(selects, vgRight)
 
-        # 选择外框
+        # 底部外框
         pfp1 = coverCurve.pfp(0.02)
         pfp2 = coverCurve.pfp(0.98)
-        bottom = vgSelects.get_bottom()
+        bottom = selects.get_bottom()
         self.bottom_box = VMobject()
         self.bottom_box.set_points_as_corners([
-            pfp1, [pfp1[0], bottom[1], 0] + DOWN * 0.1,
-            [pfp2[0], bottom[1], 0] + DOWN * 0.1, pfp2
+            pfp1, [pfp1[0], bottom[1], 0] + DOWN * 0.03,
+            [pfp2[0], bottom[1], 0] + DOWN * 0.03, pfp2
             ])
 
         self.add(
@@ -276,7 +295,7 @@ class PhyMultiEquip(VGroup):
             self.point, self.arrow, 
             self.tex, 
             self.box, self.mech_knob, self.cover, 
-            vgSelects, self.bottom_box
+            vgBottom, self.bottom_box
             )
 
     @staticmethod
@@ -549,6 +568,20 @@ class PhyMultiEquip(VGroup):
         vgLinesAndTexs = VGroup(vgAC, vgOmega, vgDCA, vgDCV)
         
         return VGroup(circle, arrow, vgSelectsSwitchLines, vgSelectsSwitchTxts, vgLinesAndTexs)
+
+    @staticmethod
+    def initOmegaKnob():
+        lines = VGroup()
+        inner_radius = 0.7
+        for i in range(10):
+            rot = TAU / 10 * i
+            pos = np.array([np.cos(rot), np.sin(rot), 0])
+            lines.add(Line(pos * inner_radius, pos, stroke_width = 2.5))
+        return VGroup(lines, PhyMultiEquip.initSocket(inner_radius))
+
+    @staticmethod
+    def initSocket(inner_radius = 0.75):
+        return VGroup(Circle(color = WHITE, stroke_width = 3), Circle(color = WHITE, stroke_width = 2, radius = inner_radius))
 
 class PhyEquipR(VMobject):
     def __init__(self, width = 1.7, height = 0.6, buff = 0.1, **kwargs):
