@@ -271,7 +271,7 @@ class PhyMultiEquip(VGroup):
         vgOmegaKnob = VGroup(self.omega_knob, arc1, arc2, omega_tex)
         # 表笔插孔
         socket1, socket2 = self.initSocket().scale(0.05), self.initSocket().scale(0.05)
-        socket1Txt, socket2Txt = self.NumTxt('+'), self.NumTxt('-')
+        socket1Txt, socket2Txt = self.NumTxt('+'), self.NumTxt('-').scale(1.5)
         # 右侧
         vgRight = VGroup(vgOmegaKnob, socket1, socket2).arrange(DOWN, buff = 0.19)
         vgRight.add(socket1Txt.next_to(socket1, LEFT, 0.05))
