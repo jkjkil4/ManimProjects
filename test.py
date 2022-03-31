@@ -7,7 +7,8 @@ class Test(Scene):
     def construct(self):
         txt = TexText("This is a text with $\\LaTeXe$ part.")
         self.play(Write(txt))
-        self.play(ShowPassingFlashAround(txt))
+        txt = Text("TEXT 文本").scale(0.8).next_to(txt, DOWN)
+        self.play(Write(txt))
 
 class ThreeDTest(Scene):
     def construct(self):
