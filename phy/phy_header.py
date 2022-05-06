@@ -208,6 +208,48 @@ class PhyMultiEquip(VGroup):
             super().__init__(txt, font = "Noto Sans Thin")
             self.scale(0.12)
 
+    '''
+    [0] vgGrads
+        [0] vg_grad_omega
+        [1] vg_grad_DC
+            [0] grad_DC_side
+            [1] grad_DC_vg_txt
+            [2] grad_DC
+        [2] vg_grad_AC
+    [1] self.point
+    [2] self.arrow
+    [3] self.tex
+    [4] self.box
+    [5] self.mech_knob
+    [6] self.cover 
+    [7] vgBottom
+        [0] selects
+            [0] circle
+            [1] arrow
+            [2] vgSelectsSwitchLines
+                [0:3]+[16:18] AC
+                [3:7] Omega
+                [7] OFF
+                [8:11] DCA
+                [11:16] DCV
+            [3] vgSelectsSwitchTxts
+                [0] vgSelectsSwitchTxtsRight
+                [1] vgSelectsSwitchTxtsLeft
+                [2] vgSelectsSwitchTxtsTop
+                [3] vgSelectsSwitchTxtsBottom
+            [4] vgLinesAndTexs
+                [0] vgAC
+                [1] vgOmega
+                [2] vgDCA
+                [3] vgDCV
+                (0~3) [0] line
+                      [1] tex
+        [1] vgRight
+            [0] vgOmegaKnob
+            [1] socket1
+            [2] socket2
+    [8] self.bottom_box
+    '''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 

@@ -9,6 +9,9 @@ test.tex
 assets/source
 videos
 
+kc.py
+assets/kc
+
 .vscode
 
 __pycache__
