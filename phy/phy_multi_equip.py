@@ -634,7 +634,7 @@ class UseOmegaScene(Scene):
         center = equ.point.get_center()
         arc1 = VMobject()
         arc2 = VMobject()
-        aph = 0.635
+        aph = 0.61
         arcAngle = 90 * DEGREES
         aphAngle = aph * arcAngle
         arcStart = 135 * DEGREES
@@ -660,15 +660,29 @@ class UseOmegaScene(Scene):
         self.play(
             Write(arc1, stroke_width = 0.2, stroke_color = BLUE_D),
             Write(arc2, stroke_width = 0.2, stroke_color = BLUE_B),
+            frame.animate.restore().scale(0.4).shift(UP * 1.6),
             run_time = 1.5
         )
 
-        # 0.512
-        # 0.268
-        # 0.21
-        # 0.09
+        def read_example_anim(arr, prev = None):
+            for pair in arr:
+                aph = pair[0]
+                val = pair[1]
+                rot = ((1 - aph) * 135 + aph * 45) * DEGREES
+                direction = RIGHT * np.cos(rot) + UP * np.sin(rot)
+                point = equ.grad_omega.arc.pfp(aph)
+                txt = Text(val, color = BLUE).scale(0.3).move_to(point).rotate(rot - 90 * DEGREES).shift(direction * 0.25)
+                self.wait(0.4)
+                anim = AnimationGroup(equ.arrow_offset.animate.set_value(aph), FadeIn(txt), lag_ratio = 0.3)
+                if prev == None:
+                    self.play(anim)
+                else:
+                    self.play(anim, FadeOut(prev, run_time = 0.6))
+                prev = txt
+            return prev
 
-        # 0.66        
+        self.wait(0.5)
+        prev = read_example_anim([[0.49, '15'], [0.256, '34'], [0.19, '45'], [0.09, '100']])
+        self.wait(0.5)
+        prev = read_example_anim([[0.635, '9.0'], [0.772, '4.3']], prev)
 
-
-        self.embed()

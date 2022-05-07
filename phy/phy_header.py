@@ -362,19 +362,19 @@ class PhyMultiEquip(VGroup):
             1, 
             0.6, 0, 0.6, 0,         # 26~33
             0.6,      # 30
-            0, 0.6, 0, 1,
-            0.6, 
-            1, 0.6, 0.6, 0.6,
-            0.6,      # 40
-            1, 0.6, 0.6, 0.6,
-            0.6, 
-            1, 0.6, 0.6, 0.6,
-            0.6,      # 50
-            1, 0.6, 0.6, 0.6,
-            0.6, 
-            1, 0.6, 0.6, 0.6,
-            0.6,      # 60
-            1, 0.6, 0.4, 0.6,
+            0.6, 1, 0, 0.6,
+            1, 
+            0.6, 0.6, 0.6, 0.6,
+            1,      # 40
+            0.6, 0.6, 0.6, 0.6,
+            1, 
+            0.6, 0.6, 0.6, 0.6,
+            1,      # 50
+            0.6, 0.6, 0.6, 0.6,
+            1, 
+            0.6, 0.6, 0.6, 0.6,
+            1,      # 60
+            0.4, 0.6, 0.4, 0.6,
             0.4, 
             0.6, 0.4, 0.6, 0.4,
             1,      # 70
@@ -384,7 +384,8 @@ class PhyMultiEquip(VGroup):
             grad_len_fn = lambda i: grad_len_list[i], 
             grad_fn = rush_into
             )
-        grad_omega.grads[26:34].rotate(-0.7 * DEGREES, about_point = ORIGIN)
+        grad_omega.grads[26:34].rotate(-1 * DEGREES, about_point = ORIGIN)
+        grad_omega.grads[30].rotate(0.5 * DEGREES, about_point = ORIGIN)
 
         # 刻度侧边物件
         # 包含"Ω"符号及其线条
@@ -407,13 +408,13 @@ class PhyMultiEquip(VGroup):
             Tex('\\infty').scale(0.15).next_to(grad_omega.grads[0].get_center(), DL, buff = 0.02),
             create_txt(13, '1k', buff = 0.09),
             create_txt(25, '100'),
-            create_txt(34, '50'),
-            create_txt(36, '40'),
-            create_txt(41, '30'),
-            create_txt(46, '20'),
-            create_txt(51, '15'),
-            create_txt(56, '10'),
-            create_txt(61, '5'),
+            create_txt(32, '50'),
+            create_txt(35, '40'),
+            create_txt(40, '30'),
+            create_txt(45, '20'),
+            create_txt(50, '15'),
+            create_txt(55, '10'),
+            create_txt(60, '5'),
             create_txt(70, '0')
             )
         grad_omega_vg_txt[3].shift(LEFT * 0.01)
