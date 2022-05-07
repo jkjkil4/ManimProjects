@@ -507,7 +507,168 @@ class UseOmegaScene(Scene):
 
         self.add(equ, el1, el2)
 
-        gDCV = Group(equ[0][1], equ[7][0][2][11:16], equ[7][0][3][3], equ[7][0][4][3])
-        gGradDC = equ[0][1]
-
         frame.save_state()
+
+        gOmega = Group(equ[0][0], equ[7][0][2][3:7], equ[7][0][3][2], equ[7][0][4][1])
+
+        self.wait(0.5)
+        self.play(*map(lambda m: m.animate.set_color(YELLOW), gOmega))
+
+        def animate_set_color_group(group, col, run_time):
+            self.play(
+                AnimationGroup(
+                    *map(lambda m: m.animate.set_color(col), group),
+                    lag_ratio = 0.1
+                ),
+                run_time = run_time
+            )
+        
+        self.wait(0.5)
+        animate_set_color_group(gOmega[0][2].grads, BLUE, 1.5)
+        self.wait(0.2)
+        animate_set_color_group(gOmega[0][2].grads, YELLOW, 1.5)
+
+        self.wait(0.5)
+        animate_set_color_group(gOmega[2], BLUE, 1)
+        self.wait(0.2)
+        animate_set_color_group(gOmega[2], YELLOW, 1)
+
+        self.bring_to_front(equ.arrow)
+
+        self.wait()
+        self.play(Rotating(equ[7][0][1], -4 * equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 1))
+
+        self.wait()
+        self.play(frame.animate.scale(0.6).shift(RIGHT * 2 + UP * 0.5))
+
+        txtOmegaKnob = VGroup(
+            Text("欧姆调零", color = GREY_A), 
+            Triangle().set_fill(GREY_A, opacity = 1).set_stroke(opacity = 0).rotate(-PI / 2)
+            )
+        txtOmegaKnob[1].set_height(txtOmegaKnob[0].get_height()).rotate(-PI / 2).next_to(txtOmegaKnob[0], DOWN, SMALL_BUFF)
+        txtOmegaKnob.scale(0.5).next_to(equ.omega_knob, UP, SMALL_BUFF)
+
+        self.wait(0.5)
+        self.play(FadeIn(txtOmegaKnob, DOWN * 0.5))
+
+        self.wait(0.5)
+        self.play(
+            el2.probe.animate.rotate_probe(-5 * DEGREES), 
+            el1.probe.animate.rotate_probe(70 * DEGREES).move_probe_to(el2.probe.get_probe_pos() + DOWN * 0.3),
+            Animation(el1), Animation(el2),
+            run_time = 1.6
+        )
+        self.play(equ.arrow_offset.animate.set_value(0.9), run_time = 1.2)
+
+        circle = Circle().set_stroke(YELLOW, opacity = 1).set_fill(opacity = 0)
+        circle.surround(equ.omega_knob)
+        
+        self.wait(0.5)
+        self.play(
+            AnimationGroup(
+                FadeIn(circle, scale = 0.8, run_time = 0.4),
+                AnimationGroup(
+                    equ.arrow_offset.animate.set_value(1),
+                    equ.omega_knob.animate.rotate(-20 * DEGREES)
+                ),
+                lag_ratio = 0.3
+            ), 
+            run_time = 1.3
+        )
+        self.play(FadeOut(circle, scale = 1.2, run_time = 0.4))
+        self.wait(0.5)
+        self.play(frame.animate.scale(1.3).shift(RIGHT * 0.5), FadeOut(txtOmegaKnob))
+
+        lineLeft_ = PhyElecLine()
+        lineRight_ = PhyElecLine()
+        phyR = PhyEquipR()
+        lineLeft = PhyElecLine()
+        lineRight = PhyElecLine()
+        vgPhyR = VGroup(
+            lineLeft_,
+            VGroup(lineLeft, phyR, lineRight).arrange(buff = 0),
+            lineRight_
+        ).arrange().scale(0.4).next_to(equ.box, buff = MED_LARGE_BUFF)
+        self.wait(0.5)
+        self.play(
+            Write(vgPhyR[1]), 
+            el1.probe.animate.rotate_probe((-70 - 60 - 20) * DEGREES).move_probe_to(lineLeft.get_left()),
+            el2.probe.animate.rotate_probe((5 - 40) * DEGREES).move_probe_to(lineRight.get_right()),
+            Animation(el1), Animation(el2),
+            run_time = 2
+        )
+
+        crsLeft = VGroup(Line(UR, DL), Line(UL, DR)).scale(0.1).set_stroke(RED, 6).next_to(lineLeft, LEFT, SMALL_BUFF)
+        crsRight = crsLeft.copy().next_to(lineRight, RIGHT, SMALL_BUFF)
+
+        self.wait(0.5)
+        self.play(FadeIn(lineLeft_, RIGHT), FadeIn(lineRight_, LEFT))
+        self.play(
+            *map(lambda m: FadeIn(m, scale = 1.2), (crsLeft, crsRight)),
+            lineLeft_.animate.next_to(crsLeft, LEFT, SMALL_BUFF),
+            lineRight_.animate.next_to(crsRight, RIGHT, SMALL_BUFF)
+        )
+        self.wait(0.5)
+        self.play(*map(FadeOut, (lineLeft_, lineRight_, crsLeft, crsRight)), run_time = 0.6)
+
+        self.wait()
+        self.play(
+            frame.animate.shift(LEFT * 2 + UP * 1.5).scale(0.4),
+            equ.arrow_offset.animate.set_value(0.61),
+            run_time = 2
+        )
+
+        texVal = Tex("\\rm 11\\Omega", color = ORANGE).set_stroke(WHITE, 0.15).scale(0.3).next_to(frame.get_center(), buff = 0.02)
+        
+        self.wait(0.5)
+        self.play(DrawBorderThenFill(texVal, stroke_width = 0.15))
+        
+        radius = np.sqrt(
+            sum(
+                [
+                    v**2 for v in
+                    (equ[0][0][2].arc.get_start() - equ.point.get_center())
+                ]
+            )
+        )
+        center = equ.point.get_center()
+        arc1 = VMobject()
+        arc2 = VMobject()
+        aph = 0.635
+        arcAngle = 90 * DEGREES
+        aphAngle = aph * arcAngle
+        arcStart = 135 * DEGREES
+        arcCenter = arcStart - aphAngle
+
+        points1 = Arc.create_quadratic_bezier_points(-aphAngle, arcStart) * 1.02 * radius
+        points2 = Arc.create_quadratic_bezier_points(aphAngle, arcCenter) * 0.98 * radius
+        arc1.set_points(points1)
+        arc1.add_points_as_corners([points1[-1], points2[0]])
+        arc1.append_points(points2)
+        arc1.add_points_as_corners([points2[-1], points1[0]])
+        arc1.shift(center).set_stroke(width = 0).set_fill(BLUE_D, 0.5)
+
+        points1 = Arc.create_quadratic_bezier_points(aphAngle - arcAngle, arcCenter) * 1.02 * radius
+        points2 = Arc.create_quadratic_bezier_points(arcAngle - aphAngle, arcStart - arcAngle) * 0.98 * radius
+        arc2.set_points(points1)
+        arc2.add_points_as_corners([points1[-1], points2[0]])
+        arc2.append_points(points2)
+        arc2.add_points_as_corners([points2[-1], points1[0]])
+        arc2.shift(center).set_stroke(width = 0).set_fill(BLUE_B, 0.5)
+
+        self.wait()
+        self.play(
+            Write(arc1, stroke_width = 0.2, stroke_color = BLUE_D),
+            Write(arc2, stroke_width = 0.2, stroke_color = BLUE_B),
+            run_time = 1.5
+        )
+
+        # 0.512
+        # 0.268
+        # 0.21
+        # 0.09
+
+        # 0.66        
+
+
+        self.embed()
