@@ -536,7 +536,7 @@ class UseOmegaScene(Scene):
         self.bring_to_front(equ.arrow)
 
         self.wait()
-        self.play(Rotating(equ[7][0][1], -4 * equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 1))
+        self.play(Rotating(equ[7][0][1], -3 * equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 1))
 
         self.wait()
         self.play(frame.animate.scale(0.6).shift(RIGHT * 2 + UP * 0.5))
@@ -550,6 +550,9 @@ class UseOmegaScene(Scene):
 
         self.wait(0.5)
         self.play(FadeIn(txtOmegaKnob, DOWN * 0.5))
+
+        el1.probe.save_state()
+        el2.probe.save_state()
 
         self.wait(0.5)
         self.play(
@@ -589,11 +592,13 @@ class UseOmegaScene(Scene):
             VGroup(lineLeft, phyR, lineRight).arrange(buff = 0),
             lineRight_
         ).arrange().scale(0.4).next_to(equ.box, buff = MED_LARGE_BUFF)
+        el1RotAngle = (-70 - 60 - 20) * DEGREES
+        el2RotAngle = (5 - 40) * DEGREES
         self.wait(0.5)
         self.play(
             Write(vgPhyR[1]), 
-            el1.probe.animate.rotate_probe((-70 - 60 - 20) * DEGREES).move_probe_to(lineLeft.get_left()),
-            el2.probe.animate.rotate_probe((5 - 40) * DEGREES).move_probe_to(lineRight.get_right()),
+            el1.probe.animate.rotate_probe(el1RotAngle).move_probe_to(lineLeft.get_left()),
+            el2.probe.animate.rotate_probe(el2RotAngle).move_probe_to(lineRight.get_right()),
             Animation(el1), Animation(el2),
             run_time = 2
         )
@@ -613,12 +618,12 @@ class UseOmegaScene(Scene):
 
         self.wait()
         self.play(
-            frame.animate.shift(LEFT * 2 + UP * 1.5).scale(0.4),
-            equ.arrow_offset.animate.set_value(0.61),
+            frame.animate.shift(LEFT * 2.2 + UP * 1.5).scale(0.4),
+            equ.arrow_offset.animate.set_value(0.585),
             run_time = 2
         )
 
-        texVal = Tex("\\rm 11\\Omega", color = ORANGE).set_stroke(WHITE, 0.15).scale(0.3).next_to(frame.get_center(), buff = 0.02)
+        texVal = Tex("\\rm 11\\Omega", color = ORANGE).set_stroke(WHITE, 0.15).scale(0.3).move_to(frame.get_center() + UP * 0.5 + RIGHT * 0.2)
         
         self.wait(0.5)
         self.play(DrawBorderThenFill(texVal, stroke_width = 0.15))
@@ -646,7 +651,7 @@ class UseOmegaScene(Scene):
         arc1.add_points_as_corners([points1[-1], points2[0]])
         arc1.append_points(points2)
         arc1.add_points_as_corners([points2[-1], points1[0]])
-        arc1.shift(center).set_stroke(width = 0).set_fill(BLUE_D, 0.5)
+        arc1.shift(center).set_stroke(width = 0).set_fill(BLUE_D, 0.6)
 
         points1 = Arc.create_quadratic_bezier_points(aphAngle - arcAngle, arcCenter) * 1.02 * radius
         points2 = Arc.create_quadratic_bezier_points(arcAngle - aphAngle, arcStart - arcAngle) * 0.98 * radius
@@ -654,12 +659,13 @@ class UseOmegaScene(Scene):
         arc2.add_points_as_corners([points1[-1], points2[0]])
         arc2.append_points(points2)
         arc2.add_points_as_corners([points2[-1], points1[0]])
-        arc2.shift(center).set_stroke(width = 0).set_fill(BLUE_B, 0.5)
+        arc2.shift(center).set_stroke(width = 0).set_fill(BLUE_B, 0.6)
 
         self.wait()
         self.play(
             Write(arc1, stroke_width = 0.2, stroke_color = BLUE_D),
             Write(arc2, stroke_width = 0.2, stroke_color = BLUE_B),
+            FadeOut(texVal, run_time = 0.6),
             frame.animate.restore().scale(0.4).shift(UP * 1.6),
             run_time = 1.5
         )
@@ -685,4 +691,71 @@ class UseOmegaScene(Scene):
         prev = read_example_anim([[0.49, '15'], [0.256, '34'], [0.19, '45'], [0.09, '100']])
         self.wait(0.5)
         prev = read_example_anim([[0.635, '9.0'], [0.772, '4.3']], prev)
+        
+        self.wait(0.5)
+        self.play(*map(FadeOut, (arc1, arc2)), run_time = 0.7)
 
+        self.wait()
+        self.play(frame.animate.scale(1.6).shift(DOWN), run_time = 1.5)
+
+        vgResult = VGroup(
+            VGroup(Text('4.3', color = BLUE), Text('×'), Text('10', color = YELLOW)).arrange().scale(0.7),
+            VGroup(Tex('\\rightarrow'), Tex('43 \\Omega', color = GREEN)).arrange()
+        ).scale(0.8).set_stroke(BLACK, 10, 0.5, True).arrange().next_to(equ.cover, UP, SMALL_BUFF)
+        
+        self.wait()
+        self.play(Write(vgResult))
+
+        # for i, val in zip(range(1, 4), ('43', '430', '4300')):
+        #     self.wait(0.3)
+        #     self.play(
+        #         Rotating(equ[7][0][1], equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 1),
+        #         Transform(vgResult[0][-1], Text(str(10**i), color = YELLOW).scale(0.56).next_to(vgResult[0][-1].get_left(), buff = 0).set_stroke(BLACK, 10, 0.5, True)),
+        #         Transform(vgResult[1][-1], Tex(val + '\\Omega', color = GREEN).scale(0.8).next_to(vgResult[1][-1].get_left(), buff = 0).set_stroke(BLACK, 10, 0.5, True)),
+        #         run_time = 1
+        #     )
+
+        el1.probe.generate_target()
+        el2.probe.generate_target()
+        el2.probe.target.restore().rotate(-5 * DEGREES)
+        el1.probe.target.restore().rotate(70 * DEGREES).move_probe_to(el2.probe.target.get_probe_pos() + DOWN * 0.3)
+
+        self.wait()
+        self.play(
+            frame.animate.shift(RIGHT * 1.5),
+            equ.arrow_offset.animate.set_value(1.04),
+            *map(FadeOut, (prev, vgResult, vgPhyR[1])),
+            *map(MoveToTarget, (el1.probe, el2.probe)),
+            *map(Animation, (el1, el2)),
+            Rotating(equ[7][0][1], equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 2),
+            run_time = 2
+        )
+
+        self.wait(0.5)
+        self.play(
+            AnimationGroup(
+                FadeIn(circle, scale = 0.8, run_time = 0.4),
+                AnimationGroup(
+                    equ.arrow_offset.animate.set_value(1),
+                    equ.omega_knob.animate.rotate(20 * DEGREES)
+                ),
+                lag_ratio = 0.6
+            ), 
+            run_time = 1.6
+        )
+        self.play(FadeOut(circle, scale = 1.2, run_time = 0.4))
+
+        self.wait(1.5)
+        self.play(
+            el1.probe.animate.restore(), el2.probe.animate.restore(),
+            Animation(el1), Animation(el2),
+            frame.animate.shift(DOWN * 0.3),
+            gOmega.animate.set_color(WHITE),
+            equ.arrow_offset.animate.set_value(0),
+            run_time = 1.5
+        )
+
+        self.wait(0.5)
+        self.play(Rotating(equ[7][0][1], 2 * equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 1))
+        
+        self.wait()
