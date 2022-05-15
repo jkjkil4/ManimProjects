@@ -5,16 +5,42 @@ import header
 
 class Test(Scene):
     def construct(self):
-        txt = TexText("This is a text with $\\LaTeXe$ part.")
-        self.play(Write(txt))
-        txt = Text("TEXT 文本").scale(0.8).next_to(txt, DOWN)
-        self.play(Write(txt))
+        vg1 = VGroup(*[Circle() for _ in range(4)])
+        vg2 = VGroup(*[Line() for _ in range(4)])
+        for a, b in zip(vg1.submobjects, vg2.submobjects):
+            print(type(vg1), type(vg2))
+        vg1.become(vg2)
+        for a, b in zip(vg1.submobjects, vg2.submobjects):
+            print(type(vg1), type(vg2))
 
 class ThreeDTest(Scene):
     def construct(self):
         cube = VCube()
         cylinder = Cylinder().scale(0.5).stretch(4, 2)
         self.add(cube, cylinder)
+
+
+class A(Scene):
+    def construct(self):
+        vec1 = np.array([2, 3, 4])
+        mat1 = np.array([
+            [4, 3, 2],
+            [1, 9, 4],
+            [4, 8, 2]
+        ])
+        result = np.matmul(mat1, vec1)
+        print(result)
+
+class ParametricSurfaceTest(Scene):
+    def construct(self):
+        def uv_func(u, v) -> np.array:
+            return np.array([u, v, 1 / v])
+        surf = ParametricSurface(uv_func, (-3, 3), (-3, 3))
+
+        frame = self.camera.frame
+        frame.set_euler_angles(theta = 12 * DEGREES, phi = 70 * DEGREES)
+
+        self.add(surf)
 
 class AnimatedStreamLinesExample(Scene):
     def construct(self):

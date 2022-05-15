@@ -636,6 +636,34 @@ class PhyEquipR(VMobject):
         self.add_points_as_corners([UL * xy, DL * xy, DR * xy, UR * xy, UL * xy])
         self.set_stroke(width = 0).set_fill(opacity = 1)
 
+class PhyEquipDiode(VGroup):
+    def __init__(self, width = 1.5, height = 1.7, buff = 0.1, **kwargs):
+        super().__init__(**kwargs)
+
+        sinv = height / 2 / np.sqrt(width**2 + (height / 2)**2)
+        tanv = height / 2 / width
+        xy = np.array([width / 2, height / 2, 0])
+        xy2 = xy - [buff, buff, 0]
+
+        self.body = VMobject()
+        self.body.set_points_as_corners([RIGHT * xy, DL * xy, UL * xy, RIGHT * xy])
+        x1 = -width / 2 + buff
+        x2 = width / 2 - buff / sinv
+        y = (x2 - x1) * tanv
+        self.body.add_points_as_corners([
+            np.array([x2, 0, 0]),
+            np.array([x1, y, 0]),
+            np.array([x1, -y, 0]),
+            np.array([x2, 0, 0])
+        ])
+        
+        self.line = VMobject()
+        self.line.set_points_as_corners([UR * xy, UP * xy + RIGHT * xy2, DOWN * xy + RIGHT * xy2, DR * xy, UR * xy])
+
+        self.add(self.body, self.line)
+        
+        self.set_stroke(width = 0).set_fill(opacity = 1)
+
 class PhyElecLine(VMobject):
     def __init__(self, start = LEFT, end = RIGHT, width = 0.1, **kwargs):
         super().__init__(**kwargs)
@@ -649,9 +677,8 @@ class PhyElecLine(VMobject):
 
 class PhyHeaderTestScene(Scene):
     def construct(self):
-        mobj = PhyMultiEquip().scale(3)
+        mobj = PhyEquipDiode()
         self.add(mobj)
-        self.play(mobj.arrow_offset.animate.set_value(1))
         
         # mobj = PhyArrowEquip("A", grad_cnt = 4, grad_zero_offset = 1, grad_fn = rush_into).scale(2)
         # self.add(mobj)

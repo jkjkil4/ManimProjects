@@ -623,7 +623,7 @@ class UseOmegaScene(Scene):
             run_time = 2
         )
 
-        texVal = Tex("\\rm 11\\Omega", color = ORANGE).set_stroke(WHITE, 0.15).scale(0.3).move_to(frame.get_center() + UP * 0.5 + RIGHT * 0.2)
+        texVal = Text("11", color = ORANGE).set_stroke(WHITE, 0.15).scale(0.3).move_to(frame.get_center() + UP * 0.5 + RIGHT * 0.2)
         
         self.wait(0.5)
         self.play(DrawBorderThenFill(texVal, stroke_width = 0.15))
@@ -706,15 +706,6 @@ class UseOmegaScene(Scene):
         self.wait()
         self.play(Write(vgResult))
 
-        # for i, val in zip(range(1, 4), ('43', '430', '4300')):
-        #     self.wait(0.3)
-        #     self.play(
-        #         Rotating(equ[7][0][1], equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 1),
-        #         Transform(vgResult[0][-1], Text(str(10**i), color = YELLOW).scale(0.56).next_to(vgResult[0][-1].get_left(), buff = 0).set_stroke(BLACK, 10, 0.5, True)),
-        #         Transform(vgResult[1][-1], Tex(val + '\\Omega', color = GREEN).scale(0.8).next_to(vgResult[1][-1].get_left(), buff = 0).set_stroke(BLACK, 10, 0.5, True)),
-        #         run_time = 1
-        #     )
-
         el1.probe.generate_target()
         el2.probe.generate_target()
         el2.probe.target.restore().rotate(-5 * DEGREES)
@@ -759,3 +750,123 @@ class UseOmegaScene(Scene):
         self.play(Rotating(equ[7][0][1], 2 * equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 1))
         
         self.wait()
+
+class DiodeScene(Scene):
+    def construct(self):
+        frame: CameraFrame = self.camera.frame
+
+        dots = Text('···')
+        
+        self.add(dots)
+        self.wait()
+        self.play(FadeOut(dots), run_time = 0.4)
+        
+        phyR = PhyEquipR()
+        lineLeft = PhyElecLine()
+        lineRight = PhyElecLine()
+        vgPhyR = VGroup(lineLeft, phyR, lineRight).arrange(buff = 0).scale(0.4)
+
+        el1 = EquipLine()
+        el1.socket.move_socket_to(DOWN * 8).rotate_socket(-135 * DEGREES)
+        el1.probe.move_probe_to(lineLeft.get_left()).rotate_probe(-110 * DEGREES)
+        el1.update_line()
+
+        el2 = EquipLine(GREY_D, "#333333", GREY_A)
+        el2.socket.move_socket_to(DOWN * 8).rotate_socket(-45 * DEGREES)
+        el2.probe.move_probe_to(lineRight.get_right()).rotate_probe(-70 * DEGREES)
+        el2.update_line()
+
+        frame.scale(0.7).shift(DOWN * 0.7)
+        
+        self.play(FadeIn(vgPhyR, DOWN * 0.5), FadeIn(el1, UP * 0.5), FadeIn(el2, UP * 0.5))
+
+        arrow1 = Arrow(el1.probe.get_probe_pos(), el1.probe.get_probe_end(), stroke_width = 7).set_color(YELLOW)
+        arrow2 = Arrow(el2.probe.get_probe_end(), el2.probe.get_probe_pos(), stroke_width = 7).set_color(YELLOW)
+        self.wait(0.5)
+        self.play(GrowArrow(arrow1))
+        self.play(GrowArrow(arrow2))
+        self.wait(0.5)
+        self.play(*map(FadeOut, (arrow1, arrow2)), run_time = 0.8)
+
+        arrowI = Arrow(lineRight.get_right() + UP * 0.5, lineLeft.get_left() + UP * 0.5, stroke_width = 4).set_color(BLUE)
+        texI = Tex('I', color = BLUE).scale(0.8).next_to(arrowI, UP, SMALL_BUFF)
+        self.wait(1.5)
+        self.play(GrowArrow(arrowI), FadeIn(texI, UP * 0.5), run_time = 0.7)
+
+        self.wait()
+        self.play(phyR.animate.set_color(YELLOW))
+        self.wait(0.5)
+        self.play(phyR.animate.set_color(WHITE))
+
+        diode = PhyEquipDiode().move_to(phyR).rotate(PI).scale(0.5)
+
+        self.wait()
+        self.play(FadeIn(diode, DOWN * 0.5), FadeOut(phyR, DOWN * 0.5))
+
+        arrowDiode1 = Arrow(RIGHT, LEFT, buff = 0).scale(0.7).next_to(diode, UP, SMALL_BUFF).set_color(PURPLE)
+        texDiode1 = Tex('R\\rightarrow 0', color = PURPLE).scale(0.6).next_to(arrowDiode1, UP, SMALL_BUFF)
+        vgDiode1 = VGroup(arrowDiode1, texDiode1)
+        arrowDiode2 = Arrow(LEFT, RIGHT, buff = 0).scale(0.7).next_to(diode, DOWN, SMALL_BUFF).set_color(PURPLE)
+        texDiode2 = Tex('R\\rightarrow +\\infty', color = PURPLE).scale(0.6).next_to(arrowDiode2, DOWN, SMALL_BUFF)
+        vgDiode2 = VGroup(arrowDiode2, texDiode2)
+
+        self.play(*map(lambda m: m.animate.shift(UP * 0.5), (arrowI, texI)), GrowArrow(arrowDiode1), FadeIn(texDiode1, LEFT * 0.5))
+        self.wait(0.5)
+        self.play(GrowArrow(arrowDiode2), FadeIn(texDiode2, RIGHT * 0.5))
+
+        equ = PhyMultiEquip().scale(2.5).next_to(frame, LEFT, 0.02).shift(DOWN * 1.5)
+        equ[7][0][1].rotate(-4 * equ.SWITCH_PER_ANGLE, about_point = equ[7][0][0].get_center())
+        el1.block_line_updater = False
+        el2.block_line_updater = False
+
+        self.wait(1.5)
+        self.play(equ.animate.shift(RIGHT * 2.5), frame.animate.shift(LEFT * 2.5), run_time = 1.6)
+        self.wait(0.5)
+        self.play(
+            vgDiode2.animate.set_opacity(0.4), vgDiode1.animate.set_color(YELLOW),
+            run_time = 1.5
+        )
+        self.play(equ.arrow_offset.animate.set_value(0.9), run_time = 1.5)
+        self.wait()
+        self.play(
+            el1.probe.animate.rotate_probe(40 * DEGREES).move_probe_to(lineRight.get_right()),
+            el2.probe.animate.rotate_probe(-40 * DEGREES).move_probe_to(lineLeft.get_left()),
+            Animation(el1), Animation(el2),
+            Rotating(arrowI, PI, rate_func = smooth, about_point = arrowI.get_center(), run_time = 1.5),
+            vgDiode1.animate.set_opacity(0.4).set_color(PURPLE), vgDiode2.animate.set_opacity(1).set_color(YELLOW),
+            run_time = 1.5
+        )
+        self.play(equ.arrow_offset.animate.set_value(0.01), run_time = 1.5)
+
+        self.wait()
+
+class PScene(Scene):
+    def construct(self):
+        frame: CameraFrame = self.camera.frame
+        txt = Text("原理").set_fill(opacity = 0).set_stroke(WHITE, 1).scale(4)
+        equ = PhyMultiEquip().scale(2.5)
+
+        self.add(txt)
+        self.wait()
+        self.play(
+            FadeOut(txt, run_time = 0.6), FadeIn(equ),
+            frame.animate.scale(0.7).shift(DOWN)
+        )
+
+        self.wait(0.5)
+        self.play(Rotating(equ[7][0][1], -TAU, about_point = equ[7][0][0].get_center(), rate_func = smooth, run_time = 3))
+
+        png = ImageMobject('assets/PME1_2_.png').set_height(2.6).move_to(frame.get_center())
+
+        self.wait(0.5)
+        self.play(FadeIn(png, UP * 0.5))
+        self.wait(3)
+        self.play(FadeOut(png, UP * 0.5))
+
+        png = ImageMobject('assets/PRef.png').set_height(2.6).move_to(frame.get_center())
+
+        self.wait(0.5)
+        self.play(FadeIn(png, RIGHT * 0.3))
+        self.wait(1.5)
+        self.play(FadeOut(png, RIGHT * 0.3))
+        

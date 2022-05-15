@@ -10,6 +10,7 @@ assets/source
 videos
 
 kc.py
+kc_border.py
 assets/kc
 
 .vscode
