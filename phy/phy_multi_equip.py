@@ -88,6 +88,25 @@ class EquipLine(VGroup):
         self.line.set_stroke(width = 7)
         return self
 
+class EquipLine2(EquipLine):
+    def __init__(self, color1 = RED, color2 = RED_E, color3 = GREY_A):
+        super().__init__(color1, color2, color3)
+        self.socket.scale(1e-5).set_opacity(0)
+
+class Battery(VGroup):
+    CONFIG = {
+        "line_po_len": 1,
+        "line_ne_len": 0.5,
+        "line_buff": 0.2,
+        "line_config": {}
+    }
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.linePo = Line(ORIGIN, DOWN * self.line_po_len, **self.line_config)
+        self.lineNe = Line(ORIGIN, DOWN * self.line_ne_len, **self.line_config)
+        self.add(self.lineNe, self.linePo).arrange(RIGHT, buff = self.line_buff)
+
+
 class OpeningScene(Scene):
     def construct(self):
         txt = Text("【物理】多用电表的使用与原理", t2c = { "【物理】": BLUE })
@@ -840,7 +859,7 @@ class DiodeScene(Scene):
 
         self.wait()
 
-class PScene(Scene):
+class PScene1(Scene):
     def construct(self):
         frame: CameraFrame = self.camera.frame
         txt = Text("原理").set_fill(opacity = 0).set_stroke(WHITE, 1).scale(4)
@@ -869,4 +888,290 @@ class PScene(Scene):
         self.play(FadeIn(png, RIGHT * 0.3))
         self.wait(1.5)
         self.play(FadeOut(png, RIGHT * 0.3))
+
+        self.wait(0.5)
+        self.play(FadeOut(equ))
         
+class PScene2(Scene):
+    def construct(self):
+        frame: CameraFrame = self.camera.frame
+        
+        line0 = PhyElecLine()
+        batt = Battery(line_config = { 'stroke_width': 8 })
+        line1 = PhyElecLine(ORIGIN, RIGHT)
+        phyEquipG = PhyEquipTxt('G', radius = 0.6, scale_factor = 0.85)
+        line2 = PhyElecLine(ORIGIN, RIGHT)
+        dot = Dot(radius = 0.12)
+        line3 = PhyElecLine(ORIGIN, RIGHT * 0.6)
+        phyR = PhyEquipR()
+        line4 = PhyElecLine()
+        vg1 = VGroup(line0, batt, line1, phyEquipG, line2, dot, line3, phyR, line4).arrange(RIGHT, buff = 0)
+        
+        lineDL = PhyElecLine(UP, DOWN).next_to(line0, DOWN, 0, LEFT)
+        lineDR = PhyElecLine(UP, DOWN).next_to(line4, DOWN, 0, RIGHT)
+        lineMid1 = PhyElecLine(UP * 0.8, ORIGIN).next_to(dot, UP, 0)
+        lineMid2 = PhyElecLine(ORIGIN, RIGHT * 1.6).next_to(lineMid1, UP, 0, LEFT)
+        phyRMask = Rectangle().set_stroke(width = 0).set_fill(ORANGE, 0.5).set_height(phyR.get_height())
+        pos = lineMid2.get_corner(UR)
+        phyArrow = Arrow(pos, [pos[0], *phyR.get_top()[1:3]], buff = 0, stroke_width = 10).set_color(WHITE)
+
+        def lineMid2_updater(_ = None):
+            width = lineMid2.get_width()
+            new_width = phyArrow.get_x() - lineMid1.get_left()[0]
+            if new_width <= 0:
+                return
+            lineMid2.stretch(new_width / width, 0).next_to(lineMid1, UP, 0, LEFT)
+        lineMid2_updater()
+        def phyRMask_updater(_ = None):
+            width = phyRMask.get_width()
+            new_width = phyR.get_right()[0] - phyArrow.get_x()
+            if new_width <= 0:
+                return
+            phyRMask.stretch(new_width / width, 0).next_to(phyR.get_right(), LEFT, 0)
+        phyRMask_updater()
+
+        texEr = VGroup(
+            Tex('E', color = YELLOW), 
+            Tex('r', color = ORANGE)
+        ).arrange(aligned_edge = DOWN).next_to(batt, DOWN)
+        texRg = Tex('R_g', color = ORANGE).next_to(phyEquipG, DOWN)
+        texR = Tex('R', color = ORANGE).next_to(phyR, DOWN)
+        circleRed = Circle(radius = 0.2, color = RED, stroke_width = 10, fill_opacity = 0).next_to(lineDL, DOWN, 0)
+        circleBlack = Circle(radius = 0.2, color = GREY_D, stroke_width = 10, fill_opacity = 0).next_to(lineDR, DOWN, 0)
+
+        el1 = EquipLine2()
+        el1.socket.move_socket_to(circleRed.get_center()).rotate_socket(-110 * DEGREES)
+        el1.probe.move_probe_to(DL * 3).rotate_probe(-110 * DEGREES)
+        el1.update_line()
+        el1.block_line_updater = False
+        el2 = EquipLine2(GREY_D, "#333333", GREY_A)
+        el2.socket.move_socket_to(circleBlack.get_center()).rotate_socket(-70 * DEGREES)
+        el2.probe.move_probe_to(DR * 3).rotate_probe(-70 * DEGREES)
+        el2.update_line()
+        el2.block_line_updater = False
+
+        frame.shift(DOWN)
+        self.wait()
+        self.play(
+            FadeIn(Group(vg1, phyRMask), scale = 1.2),
+            *map(lambda m: FadeIn(m, DOWN), (lineMid1, lineMid2, phyArrow)),
+            *map(lambda m: FadeIn(m, UP), (lineDL, lineDR, texEr, texRg, texR, circleRed, circleBlack, el1, el2))
+        )
+
+        lineMid2.add_updater(lineMid2_updater)
+        phyRMask.add_updater(phyRMask_updater)
+        
+        self.wait()
+        self.play(
+            AnimationGroup(
+                *map(
+                    lambda m: Indicate(m, scale_factor = 1.1),
+                    (batt, phyEquipG, Group(phyR, phyRMask))
+                ),
+                lag_ratio = 2
+            )
+        )
+
+        texEq1 = Tex(
+            'E', '=', 'I_m', '\\cdot', '(', 
+            'r', '+', 'R_g', '+', 'R', ')'
+        ).shift(DOWN * 2 + LEFT)
+        texEq1[0].set_color(YELLOW)
+        texEq1[2].set_color(RED)
+        texEq1[5].set_color(ORANGE)
+        texEq1[7].set_color(ORANGE)
+        texEq1[9].set_color(ORANGE)
+
+        self.wait()
+        self.play(
+            AnimationGroup(
+                frame.animate.shift(DOWN),
+                AnimationGroup(
+                    el1.probe.animate.move_probe_to(DOWN * 3 + RIGHT * 0.2).rotate_probe(-20 * DEGREES),
+                    el2.probe.animate.move_probe_to(DOWN * 3 + LEFT * 0.2).rotate_probe(20 * DEGREES),
+                    Animation(el1), Animation(el2),
+                    run_time = 1.5
+                ),
+                lag_ratio = 0.2
+            )
+        )
+        self.wait()
+        self.play(Write(texEq1))
+        self.play(ShowCreationThenDestruction(Underline(texEq1, color = YELLOW), run_time = 1.2))
+        self.wait(0.5)
+        self.play(ShowCreationThenDestruction(Underline(texEq1[2], color = YELLOW), run_time = 1.5))
+        
+        texRi = Tex('R_\\text{内}', color = ORANGE).next_to(texEq1[3], buff = SMALL_BUFF)
+        texRiEq = VGroup(texRi.copy(), Tex('=')).arrange().next_to(texRi.get_left(), buff = 1.5)
+        
+        self.wait()
+        self.play(
+            AnimationGroup(
+                texEq1[4:].animate.next_to(texRiEq),
+                AnimationGroup(*map(lambda m: FadeIn(m, scale = 1.2), (texRi, texRiEq))),
+                lag_ratio = 0.3
+            )
+        )
+
+        lineRxLeft = PhyElecLine(ORIGIN)
+        phyRx = PhyEquipR()
+        lineRxRight = PhyElecLine(ORIGIN)
+        vgPhyRx = VGroup(lineRxLeft, phyRx, lineRxRight).arrange(buff = 0).shift(DOWN * 4.5).scale(0.7)
+        texRx = Tex('R_{\\mathsf x}', color = ORANGE).next_to(vgPhyRx, UP, SMALL_BUFF)
+
+        self.wait()
+        self.play(
+            AnimationGroup(
+                AnimationGroup(
+                    FadeIn(vgPhyRx, scale = 1.2),
+                    FadeIn(texRx, scale = 1.2)
+                ),
+                AnimationGroup(
+                    el1.socket.animate.rotate_socket(-40 * DEGREES),
+                    el2.socket.animate.rotate_socket(40 * DEGREES),
+                    el1.probe.animate.move_probe_to(lineRxLeft.get_left()).rotate_probe(-30 * DEGREES),
+                    el2.probe.animate.move_probe_to(lineRxRight.get_right()).rotate_probe(30 * DEGREES),
+                    Animation(el1), Animation(el2),
+                    run_time = 1.2
+                ),
+                lag_ratio = 0.1
+            )
+        )
+
+        texEq2 = Tex(
+            'E', '=', 'I', '\\cdot', '(', 'R_\\text{内}', '+', 'R_{\\mathsf x}', ')'
+        ).next_to(texEq1, DOWN, aligned_edge = LEFT)
+        texEq2[0].set_color(YELLOW)
+        texEq2[2].set_color(RED_B)
+        texEq2[5].set_color(ORANGE)
+        texEq2[7].set_color(ORANGE)
+
+        self.wait()
+        self.play(Write(texEq2))
+        self.play(ShowCreationThenDestruction(Underline(texEq2, color = YELLOW), run_time = 1.2))
+        self.wait(0.5)
+        self.play(ShowCreationThenDestruction(Underline(texEq2[2], color = YELLOW), run_time = 1.5))
+
+        el1.block_line_updater = True
+        el2.block_line_updater = True
+        vgEq1Left = texEq1[:4]
+        vgPhyRi = VGroup(texRiEq, texEq1[4:])
+
+        self.wait()
+        self.play(
+            *map(
+                FadeOut, (
+                    texEr, texRg, texR,
+                    vg1, lineDL, lineDR, dot, lineMid1, lineMid2, 
+                    phyArrow, phyRMask, circleRed, circleBlack,
+                    el1, el2, vgPhyRx, texRx
+                )
+            ),
+            vgPhyRi.animate.set_opacity(0.5),
+            frame.animate.shift(DOWN * 2),
+            run_time = 1.2
+        )
+
+        texEq3Left = texEq2[2:].copy()
+        texEq3Mid = Tex('=')
+        texEq3Right = VGroup(vgEq1Left[2:].copy(), texRi.copy())
+        vgTexEq3 = VGroup(texEq3Left, texEq3Mid, texEq3Right)
+        texEq3Left.generate_target().next_to(texEq2, DOWN, LARGE_BUFF, LEFT)
+        texEq3Mid.next_to(texEq3Left.target)
+        texEq3Right.generate_target().next_to(texEq3Mid)
+
+        self.wait()
+        self.play(
+            MoveToTarget(texEq3Left, path_arc = 60 * DEGREES),
+            MoveToTarget(texEq3Right, path_arc = -60 * DEGREES), 
+            FadeIn(texEq3Mid, scale = 1.2),
+            run_time = 1.4
+        )
+        self.play(ShowCreationThenDestruction(Underline(vgTexEq3, color = YELLOW), run_time = 1.2))
+
+        texEq4 = Tex('R_\\text{内}', '+', 'R_{\\mathsf x}', '=', '\\frac{I_m}{I}', 'R_\\text{内}')
+        texEq4.next_to(texEq3Left.get_left(), buff = 0)
+        texEq4[0].set_color(ORANGE)
+        texEq4[2].set_color(ORANGE)
+        texEq4[4][:2].set_color(RED)
+        texEq4[4][3].set_color(RED_B)
+        texEq4[5].set_color(ORANGE)
+        transList = (
+            (texEq3Left[3:6], texEq4[:3], 0),
+            (texEq3Mid, texEq4[3], 0),
+            (texEq3Right[0][0], texEq4[4][:2], 0),
+            (texEq3Left[0], texEq4[4][3], 60 * DEGREES),
+            (texEq3Right[1], texEq4[5], 0)
+        )
+
+        self.wait()
+        self.play(
+            *[FadeTransform(*v[:2], path_arc = v[2], run_time = 1.5) for v in transList],
+            *[FadeOut(m, run_time = 0.6) for m in (texEq3Left[1:3], texEq3Left[-1], texEq3Right[0][-1])],
+            FadeIn(texEq4[4][2], LEFT, run_time = 1.5)
+        )
+
+        texEq5 = Tex('R_{\\mathsf x}', '=', '\\frac{I_m}{I}', 'R_\\text{内}', '-', 'R_\\text{内}')
+        texEq5.next_to(texEq4.get_left(), buff = 0)
+        texEq5[0].set_color(ORANGE)
+        texEq5[2][:2].set_color(RED)
+        texEq5[2][3].set_color(RED_B)
+        texEq5[3].set_color(ORANGE)
+        texEq5[5].set_color(ORANGE)
+        transList = (
+            (texEq4[2:], texEq5[:4], 0),
+            (texEq4[0], texEq5[-1], 90 * DEGREES),
+            (texEq4[1], texEq5[-2], 90 * DEGREES)
+        )
+
+        self.play(*[FadeTransform(*v[:2], path_arc = v[2], run_time = 1.5) for v in transList])
+
+        texEq6 = Tex('R_{\\mathsf x}', '=', 'R_\\text{内}', '(', '\\frac{I_m}{I}', '-', '1', ')')
+        texEq6.next_to(texEq5.get_left(), buff = 0)
+        texEq6[0].set_color(ORANGE)
+        texEq6[2].set_color(ORANGE)
+        texEq6[4][:2].set_color(RED)
+        texEq6[4][3].set_color(RED_B)
+        transList = (
+            (texEq5[:2], texEq6[:2], 0),
+            (texEq5[2], texEq6[4], 0),
+            (texEq5[4], texEq6[5], 0),
+            (texEq5[3], texEq6[2], 90 * DEGREES)
+        )
+        texEq5[5].generate_target().move_to(texEq6[2])
+
+        self.play(
+            *[FadeTransform(*v[:2], path_arc = v[2], run_time = 1.5) for v in transList],
+            MoveToTarget(texEq5[5], run_time = 1.5, path_arc = 90 * DEGREES),
+            *[FadeIn(m, RIGHT * 0.5, run_time = 1.5) for m in (texEq6[3], texEq6[6:])]
+        )
+        self.remove(texEq5[5])
+
+        rect1 = BackgroundRectangle(texEq6[4][:2], buff = 0.1, color = YELLOW, stroke_width = 0, fill_opacity = 0.3)
+        rect2 = BackgroundRectangle(texEq6[4][3], buff = 0.1, color = YELLOW, stroke_width = 0, fill_opacity = 0.3)
+        rect3 = BackgroundRectangle(texEq6[0], buff = 0.1, color = YELLOW, stroke_width = 0, fill_opacity = 0.3)
+        
+        self.wait()
+        self.play(
+            AnimationGroup(
+                AnimationGroup(frame.animate.move_to(texEq6).scale(0.5), run_time = 1.4),
+                FadeIn(rect1, scale = 0.8),
+                lag_ratio = 0.6
+            )
+        )
+        self.wait()
+        self.play(FadeOut(rect1, scale = 1.2), run_time = 0.7)
+        self.wait(0.6)
+        self.play(FadeIn(rect2, scale = 0.8), run_time = 0.7)
+        self.wait()
+        self.play(
+            AnimationGroup(
+                FadeOut(rect2, scale = 1.2), FadeIn(rect3, scale = 0.8),
+                lag_ratio = 0.5
+            ), 
+            run_time = 0.7
+        )
+        self.wait()
+        self.play(FadeOut(rect3, scale = 1.2))
+
+        self.wait()

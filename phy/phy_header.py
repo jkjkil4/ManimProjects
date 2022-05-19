@@ -8,14 +8,15 @@ from header import *
 
 class PhyEquip(VGroup):
     CONFIG = {
-        "radius": 1
+        "radius": 1,
+        "scale_factor": 0.9
     }
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         circle_points = Arc.create_quadratic_bezier_points(TAU, n_components = 64)
         vmobj = VMobject()
-        vmobj.append_points(circle_points * 0.9)
+        vmobj.append_points(circle_points * self.scale_factor)
         vmobj.append_points(circle_points)
         vmobj.scale(self.radius).set_stroke("#eeeeee", width = 1).set_fill(opacity = 1)
 
