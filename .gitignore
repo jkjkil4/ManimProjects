@@ -2,16 +2,21 @@ manim
 manim0
 manim1
 videos
+images
 debugTeX.py
 test.tex
 *.mp4
 *.kdenlive
+*.docx
 assets/source
 videos
+
+it/BMP_Format
 
 kc.py
 kc_border.py
 assets/kc
+example_scenes.py
 
 .vscode
 

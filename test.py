@@ -1,35 +1,15 @@
-import sys
-sys.path.append(".")
 from manimlib import *
-import header
 
 class Test(Scene):
     def construct(self):
-        vg1 = VGroup(*[Circle() for _ in range(4)])
-        vg2 = VGroup(*[Line() for _ in range(4)])
-        for a, b in zip(vg1.submobjects, vg2.submobjects):
-            print(type(vg1), type(vg2))
-        vg1.become(vg2)
-        for a, b in zip(vg1.submobjects, vg2.submobjects):
-            print(type(vg1), type(vg2))
+        txt = Text("这是一行有点长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长的文本\n这是另一行").scale(0.8)
+        self.add(txt)
 
 class ThreeDTest(Scene):
     def construct(self):
         cube = VCube()
         cylinder = Cylinder().scale(0.5).stretch(4, 2)
         self.add(cube, cylinder)
-
-
-class A(Scene):
-    def construct(self):
-        vec1 = np.array([2, 3, 4])
-        mat1 = np.array([
-            [4, 3, 2],
-            [1, 9, 4],
-            [4, 8, 2]
-        ])
-        result = np.matmul(mat1, vec1)
-        print(result)
 
 class ParametricSurfaceTest(Scene):
     def construct(self):

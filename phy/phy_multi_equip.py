@@ -106,6 +106,22 @@ class Battery(VGroup):
         self.lineNe = Line(ORIGIN, DOWN * self.line_ne_len, **self.line_config)
         self.add(self.lineNe, self.linePo).arrange(RIGHT, buff = self.line_buff)
 
+class Cover1Scene(Scene):
+    def construct(self):
+        frame: CameraFrame = self.camera.frame
+        equ = PhyMultiEquip().scale(2.5)
+        frame.scale(0.7).shift(UR * 0.5)
+        self.add(equ)
+
+class Cover2Scene(Scene):
+    def construct(self):
+        frame: CameraFrame = self.camera.frame
+        el = EquipLine()
+        el.probe.rotate_probe(40 * DEGREES).move_probe_to(DL * 2)
+        el.socket.move_socket_to(UP + RIGHT * 14).rotate_socket(160 * DEGREES)
+        el.update_line()
+        frame.shift(RIGHT + UP * 0.3).scale(0.7)
+        self.add(el)
 
 class OpeningScene(Scene):
     def construct(self):
@@ -1147,21 +1163,21 @@ class PScene2(Scene):
         )
         self.remove(texEq5[5])
 
-        rect1 = BackgroundRectangle(texEq6[4][:2], buff = 0.1, color = YELLOW, stroke_width = 0, fill_opacity = 0.3)
+        # rect1 = BackgroundRectangle(texEq6[2], buff = 0.1, color = YELLOW, stroke_width = 0, fill_opacity = 0.3)
         rect2 = BackgroundRectangle(texEq6[4][3], buff = 0.1, color = YELLOW, stroke_width = 0, fill_opacity = 0.3)
         rect3 = BackgroundRectangle(texEq6[0], buff = 0.1, color = YELLOW, stroke_width = 0, fill_opacity = 0.3)
         
         self.wait()
         self.play(
-            AnimationGroup(
+        #     AnimationGroup(
                 AnimationGroup(frame.animate.move_to(texEq6).scale(0.5), run_time = 1.4),
-                FadeIn(rect1, scale = 0.8),
-                lag_ratio = 0.6
-            )
+        #         FadeIn(rect1, scale = 0.8),
+        #         lag_ratio = 0.6
+        #     )
         )
-        self.wait()
-        self.play(FadeOut(rect1, scale = 1.2), run_time = 0.7)
-        self.wait(0.6)
+        # self.wait()
+        # self.play(FadeOut(rect1, scale = 1.2), run_time = 0.7)
+        # self.wait(0.6)
         self.play(FadeIn(rect2, scale = 0.8), run_time = 0.7)
         self.wait()
         self.play(
@@ -1174,4 +1190,123 @@ class PScene2(Scene):
         self.wait()
         self.play(FadeOut(rect3, scale = 1.2))
 
+        axes = Axes(
+            (-1.5, 10.5), (-1.5, 9.5), width = 12 * 0.4, height = 11 * 0.4,
+            axis_config = { 
+                'include_tip': True, 
+                'include_ticks': False,
+                'tip_config': {
+                    'width': 0.15,
+                    'height': 0.15
+                }
+            },
+        ).set_color(WHITE).next_to(texEq6, DOWN, MED_LARGE_BUFF).to_edge(LEFT)
+        texAxisI = Tex('I', color = RED_B).scale(0.7).next_to(axes.x_axis.tip, buff = SMALL_BUFF)
+        texAxisRx = Tex('R_{\\mathsf x}', color = ORANGE).scale(0.7).next_to(axes.y_axis.tip, UP, SMALL_BUFF)
+
+        def I_Rx(x, Ri, Im):
+            return Ri * (Im / x - 1)
+        def I_Rx_0d8_6(x):
+            return I_Rx(x, 0.8, 6)
+        def coordsfn_to_point(x, fn):
+            return axes.coords_to_point(x, fn(x))
+        graph = axes.get_graph(I_Rx_0d8_6, (0.45, 10), color = BLUE, stroke_width = 3)
+
+
         self.wait()
+        self.play(
+            AnimationGroup(
+                AnimationGroup(
+                    frame.animate.scale(2).next_to(texEq6.get_top(), DOWN, buff = 0).shift(UP * 0.5),
+                    run_time = 1.6
+                ),
+                AnimationGroup(
+                    AnimationGroup(
+                        ShowCreation(axes),
+                        Write(texAxisI), Write(texAxisRx),
+                    ),
+                    ShowCreation(graph),
+                    run_time = 1.8, lag_ratio = 0.5
+                ),
+                lag_ratio = 0.4
+            )
+        )
+
+        vI = ValueTracker(6)
+        dotGraphRx = Dot(color = ORANGE, radius = 0.05)
+        dotGraphRx.add_updater(lambda m: m.move_to(coordsfn_to_point(vI.get_value(), I_Rx_0d8_6)))
+        texGraphRx = Tex('R_{\\mathsf x}', color = ORANGE).set_stroke(BLACK, 3, 1, True).scale(0.8)
+        texGraphRx.add_updater(lambda m: m.next_to(dotGraphRx, DOWN, SMALL_BUFF))
+        h_line = always_redraw(lambda: axes.get_h_line(dotGraphRx.get_left()).set_color(GREY))
+        v_line = always_redraw(lambda: axes.get_v_line(dotGraphRx.get_bottom()).set_color(GREY))
+
+        self.wait()
+        self.bring_to_back(h_line, v_line)
+        self.play(
+            *map(FadeIn, (h_line, v_line)),
+            *[FadeIn(m, scale = 0.8) for m in [dotGraphRx, texGraphRx]],
+        )
+        self.wait(0.5)
+        self.play(vI.animate.set_value(0.5), run_time = 1.4)
+
+        omegaGrads = PhyMultiEquip.initOmegaGrads()
+        omegaGradsArc = VMobject(color = ORANGE).set_stroke(WHITE, 6, 1)
+        omegaGradsArc.set_points(Arc.create_quadratic_bezier_points(PI / 2, PI / 4) * 0.98)
+        Group(omegaGrads, omegaGradsArc).scale(4).next_to(axes)
+
+        self.wait()
+        self.play(
+            FadeIn(omegaGrads),
+            ShowCreation(omegaGradsArc),
+            run_time = 0.8
+        )
+        omegaGradsArc.reverse_points()
+        self.wait()
+        self.play(
+            Uncreate(omegaGradsArc, run_time = 0.6),
+            FadeOut(omegaGrads), FadeOut(texGraphRx),
+            run_time = 0.8
+        )
+
+        vgTexSpecial = VGroup(
+            Tex('I', '=', 'I_m'), Tex('\\rightarrow'), Tex('R_{\\mathsf x}', '=', '0'),
+            Tex('I', '=', '\\frac{I_m}{2}'), Tex('\\rightarrow'), Tex('R_{\\mathsf x}', '=', 'R_\\text{内}')
+        ).arrange_in_grid(2, 3, h_buff = SMALL_BUFF, v_buff = MED_LARGE_BUFF).next_to(axes, buff = LARGE_BUFF)
+        vgTexSpecial[0][0].set_color(RED_B)
+        vgTexSpecial[0][2].set_color(RED)
+        vgTexSpecial[2][0].set_color(ORANGE)
+        vgTexSpecial[2][2].set_color(ORANGE)
+        vgTexSpecial[3][0].set_color(RED_B)
+        vgTexSpecial[3][2].set_color(RED)
+        vgTexSpecial[5][0].set_color(ORANGE)
+        vgTexSpecial[5][2].set_color(ORANGE)
+        texGraphIm = Tex('I_m', color = RED).scale(0.7)
+        texGraphHalfIm = Tex('\\frac{I_m}{2}', color = RED).scale(0.7)
+        texGraphRi = Tex('R_\\text{内}', color = ORANGE).scale(0.7)
+        
+        self.wait()
+        self.play(
+            AnimationGroup(
+                AnimationGroup(vI.animate.set_value(6), run_time = 1.6), 
+                Write(vgTexSpecial[:2]),
+                lag_ratio = 0.5
+            )
+        )
+        self.wait()
+        texGraphIm.next_to(v_line, DOWN, SMALL_BUFF)
+        self.play(Write(vgTexSpecial[2]), FadeIn(texGraphIm, scale = 0.8))
+        self.wait()
+        self.play(
+            AnimationGroup(
+                AnimationGroup(vI.animate.set_value(3), run_time = 1.2), 
+                Write(vgTexSpecial[3:5]),
+                lag_ratio = 0.5
+            )
+        )
+        self.wait()
+        texGraphHalfIm.next_to(v_line, DOWN, SMALL_BUFF)
+        texGraphRi.next_to(h_line, LEFT, SMALL_BUFF)
+        self.play(Write(vgTexSpecial[5]), FadeIn(texGraphHalfIm, scale = 0.8), FadeIn(texGraphRi, scale = 0.8))
+        self.play(ShowCreationThenFadeOut(SurroundingRectangle(vgTexSpecial, buff = MED_LARGE_BUFF).set_color(YELLOW)), run_time = 1.6)
+
+        self.wait(2)

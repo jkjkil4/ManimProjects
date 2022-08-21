@@ -275,7 +275,7 @@ class PhyMultiEquip(VGroup):
         self.arrow.add_updater(arrow_updater)
 
         # 刻度下方Tex
-        self.tex = Tex("\\rm A-V-\\Omega").scale(0.2).shift(UP * 0.35)
+        self.tex = Tex("{\\rm A-V}-\\Omega").scale(0.2).shift(UP * 0.35)
 
         # 表盘外框
         box_width = 2 * (max(-vgGrads.get_left()[0], vgGrads.get_right()[0]) + self.box_buff)
