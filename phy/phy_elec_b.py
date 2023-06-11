@@ -1,7 +1,7 @@
 import sys
 sys.path.append('.')
 from manimlib import *
-from header import *
+from utils.header_legacy import *
 
 # def complex_to_ndarray(num: complex, c1: int, c2: int):
 #     def getv(ind: int):

@@ -1,6 +1,6 @@
 import sys
 sys.path.append(".")
-import header as h
+import utils.header_legacy as h
 from manimlib import *
 
 elecLineBuf = [2, 0, 0]

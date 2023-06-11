@@ -1,6 +1,6 @@
 import sys
 sys.path.append(".")
-import utils.header_legacy as h
+import header as h
 from manimlib import *
 
 poly_vertexs = [

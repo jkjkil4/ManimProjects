@@ -1,7 +1,7 @@
 import sys
 sys.path.append('.')
 from phy.phy_header import *
-from header import *
+from utils.header_legacy import *
 
 # colormap = {
 #     "I": RED_B, "I_g": RED,

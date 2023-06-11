@@ -1,6 +1,6 @@
 import sys
 sys.path.append('.')
-from header import *
+from header_legacy import *
 from phy.phy_header import *
 from manimlib import *
 

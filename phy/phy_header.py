@@ -4,7 +4,7 @@ import sys
 from numpy import inner
 sys.path.append('.')
 from manimlib import *
-from header import *
+from utils.header_legacy import *
 
 class PhyEquip(VGroup):
     CONFIG = {

@@ -1,0 +1,9 @@
+tex:
+  executable: "xelatex -no-pdf"
+  template_file: "ctex_template.tex" 
+  intermediate_filetype: "xdv"
+  text_to_replace: "[tex_expression]"
+style:
+  # background_color: "#000000"
+  background_color: "#eeeeee"
+# window_position: OO
